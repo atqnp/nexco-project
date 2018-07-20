@@ -16,6 +16,8 @@ from selenium.webdriver.chrome.options import Options
 
 url = "http://search.w-nexco.co.jp/route.php"
 
+
+
 #new session
 df = pd.read_csv('201807_ryokin1.csv')
 df_edit = df.dropna(subset=['入口','出口'])
@@ -81,6 +83,6 @@ for index, row in df_edit.iterrows():
     full.append(toll)
     time.sleep(10)
 
-with open("highwayryokin.csv","wb") as f:
+with open("highwayryokin.csv","w", newlin = '') as f:
     writer = csv.writer(f)
     writer.writerows(full)
