@@ -16,8 +16,6 @@ from selenium.webdriver.chrome.options import Options
 
 url = "http://search.w-nexco.co.jp/route.php"
 
-
-
 #new session
 df = pd.read_csv('201807_ryokin1.csv')
 df_edit = df.dropna(subset=['入口','出口'])
