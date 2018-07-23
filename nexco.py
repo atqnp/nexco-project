@@ -11,12 +11,9 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome.options import Options
 
-#options = Options()
-#options.add_argument('--headless')
-
+options = Options()
+options.add_argument('--headless')
 url = "http://search.w-nexco.co.jp/route.php"
-
-
 
 #new session
 df = pd.read_csv('201807_ryokin1.csv')
@@ -25,7 +22,7 @@ full = []
 for index, row in df_edit.iterrows():
     
     #navigate to the page
-    driver = webdriver.Chrome()
+    driver = webdriver.Chrome(chrome_options=options)
     driver.get(url)
 
     #get the fill in form
@@ -61,28 +58,13 @@ for index, row in df_edit.iterrows():
 
     time.sleep(5)
 
-#if car type 1 and 2
-#kyujitsu_toll = driver.find_element_by_xpath('//*[@id="etc_box1_5"]/div[2]/div/div/dl[1]/dd/span').get_attribute("innerText")
-#shinya_toll = driver.find_element_by_xpath('//*[@id="etc_box1_5"]/div[2]/div/div/dl[2]/dd/span').get_attribute("innerText")
-#per30_toll = driver.find_element_by_xpath('//*[@id="etc_box1_5"]/div[2]/div/div/dl[3]/dd[2]/dl[1]/dd/span').get_attribute("innerText")
-#per50_toll = driver.find_element_by_xpath('//*[@id="etc_box1_5"]/div[2]/div/div/dl[3]/dd[2]/dl[2]/dd/span').get_attribute("innerText")
-
-
-#kyujitsu_toll = 0
-#shinya_toll = driver.find_element_by_xpath('//*[@id="etc_box1_5"]/div[2]/div/div/dl[1]/dd/span').get_attribute("innerText")
-#per30_toll = driver.find_element_by_xpath('//*[@id="etc_box1_5"]/div[2]/div/div/dl[2]/dd[2]/dl[1]/dd/span').get_attribute("innerText")
-#per50_toll = driver.find_element_by_xpath('//*[@id="etc_box1_5"]/div[2]/div/div/dl[2]/dd[2]/dl[2]/dd/span').get_attribute("innerText")
-
-
-#close session
+    #close session
     driver.quit()
-
-#toll = [normal_toll, etc_toll, etc2_toll, kyujitsu_toll, shinya_toll, per30_toll, per50_toll]
     
     toll = [row['入口'],row['出口'],normal_toll, etc_toll, etc2_toll]
     full.append(toll)
     time.sleep(10)
 
-with open("highwayryokin.csv","w", newlin = '') as f:
+with open("highwayryokin.csv","w", newline = '') as f:
     writer = csv.writer(f)
     writer.writerows(full)
