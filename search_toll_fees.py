@@ -115,3 +115,49 @@ normal = AllToll("2").get_toll("2")
 chugata = AllToll("3").get_toll("3")
 ogata = AllToll("4").get_toll("4")
 toku = AllToll("5").get_toll("5")
+
+#change to pandas dataframe
+title_1 =  ['入口', '出口', '通常（現金）', 'ETC', 'ETC2.0', 
+            '休日(ETC)', '深夜(ETC)', '還元率30%(ETC)', '還元率50%(ETC)', 
+            '休日(ETC2.0)', '深夜(ETC2.0)','還元率30%(ETC2.0)', '還元率50%(ETC2.0)']
+title_2 = ['入口', '出口', '通常（現金）', 'ETC', 'ETC2.0', 
+           '深夜(ETC)', '還元率30%(ETC)', '還元率50%(ETC)', 
+           '深夜(ETC2.0)','還元率30%(ETC2.0)', '還元率50%(ETC2.0)']
+pd_kei = pd.DataFrame(kei, columns = title_1)
+pd_normal = pd.DataFrame(normal, columns = title_1)
+pd_chugata = pd.DataFrame(chugata, columns = title_2)
+pd_ogata = pd.DataFrame(ogata, columns = title_2)
+pd_toku = pd.DataFrame(toku, columns = title_2)
+
+all_kei = pd_kei[pd_kei.columns[2:]].replace('[\$,円,分]', '', regex=True).astype(int)
+all_normal = pd_normal[pd_normal.columns[2:]].replace('[\$,円,分]', '', regex=True).astype(int)
+all_chugata = pd_chugata[pd_chugata.columns[2:]].replace('[\$,円,分]', '', regex=True).astype(int)
+all_ogata = pd_ogata[pd_ogata.columns[2:]].replace('[\$,円,分]', '', regex=True).astype(int)
+all_toku = pd_toku[pd_toku.columns[2:]].replace('[\$,円,分]', '', regex=True).astype(int)
+
+fin_gen = pd.concat([all_kei['通常（現金）'],all_normal['通常（現金）'],
+                     all_chugata['通常（現金）'],all_ogata['通常（現金）'],all_toku['通常（現金）']], axis=1, 
+                    keys=['軽自動車', '普通車', '中型車', '大型車', '特大車'])
+fin_etc = pd.concat([all_kei['ETC'],all_normal['ETC'],
+                     all_chugata['ETC'],all_ogata['ETC'],all_toku['ETC']], axis=1,
+                   keys=['軽自動車', '普通車', '中型車', '大型車', '特大車'])
+fin_etc2 = pd.concat([all_kei['ETC2.0'],all_normal['ETC2.0'],
+                     all_chugata['ETC2.0'],all_ogata['ETC2.0'],all_toku['ETC2.0']], axis=1,
+                    keys=['軽自動車', '普通車', '中型車', '大型車', '特大車'])
+fin_kyu = pd.concat([all_kei['休日(ETC)'],all_normal['休日(ETC)']], axis=1,
+                   keys=['軽自動車', '普通車'])
+fin_shya = pd.concat([all_kei['深夜(ETC)'],all_normal['深夜(ETC)'],
+                     all_chugata['深夜(ETC)'],all_ogata['深夜(ETC)'],all_toku['深夜(ETC)']], axis=1,
+                    keys=['軽自動車', '普通車', '中型車', '大型車', '特大車'])
+fin_etc30p = pd.concat([all_kei['還元率30%(ETC)'],all_normal['還元率30%(ETC)'],
+                     all_chugata['還元率30%(ETC)'],all_ogata['還元率30%(ETC)'],all_toku['還元率30%(ETC)']], axis=1,
+                    keys=['軽自動車', '普通車', '中型車', '大型車', '特大車'])
+fin_etc50p = pd.concat([all_kei['還元率50%(ETC)'],all_normal['還元率50%(ETC)'],
+                     all_chugata['還元率50%(ETC)'],all_ogata['還元率50%(ETC)'],all_toku['還元率50%(ETC)']], axis=1,
+                    keys=['軽自動車', '普通車', '中型車', '大型車', '特大車'])
+fin_2etc30p = pd.concat([all_kei['還元率30%(ETC2.0)'],all_normal['還元率30%(ETC2.0)'],
+                     all_chugata['還元率30%(ETC2.0)'],all_ogata['還元率30%(ETC2.0)'],all_toku['還元率30%(ETC2.0)']], axis=1,
+                    keys=['軽自動車', '普通車', '中型車', '大型車', '特大車'])
+fin_2etc30p = pd.concat([all_kei['還元率50%(ETC2.0)'],all_normal['還元率50%(ETC2.0)'],
+                     all_chugata['還元率50%(ETC2.0)'],all_ogata['還元率50%(ETC2.0)'],all_toku['還元率50%(ETC2.0)']], axis=1,
+                    keys=['軽自動車', '普通車', '中型車', '大型車', '特大車'])
