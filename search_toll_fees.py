@@ -109,9 +109,7 @@ class AllToll(FeeList):
             self.buttonlist.append(merged_toll)
             time.sleep(10)
         return self.buttonlist
-    
-    
-    
+     
 kei = AllToll("1").get_toll("1")
 normal = AllToll("2").get_toll("2")
 chugata = AllToll("3").get_toll("3")
