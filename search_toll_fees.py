@@ -2,6 +2,7 @@ import pandas as pd
 import time
 import csv
 import itertools
+from functools import reduce
 from selenium import webdriver
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.common.by import By
@@ -9,6 +10,8 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome.options import Options
 
 url = "http://search.w-nexco.co.jp/route.php"
+options = Options()
+options.add_argument('--headless')
 
 df = pd.read_csv('ryokin_test.csv')
 df_edit = df.dropna(subset=['入口','出口'])
@@ -26,7 +29,7 @@ class AllToll(FeeList):
     def get_toll(self, cartype_val):
         for index, row in df_edit.iterrows():
             #navigate to the page
-            driver = webdriver.Chrome()
+            driver = webdriver.Chrome(chrome_options=options)
             driver.get(url)
 
             #get the fill in form
@@ -58,6 +61,11 @@ class AllToll(FeeList):
             #get the toll fee
             time.sleep(3)
             
+            def ic_name():
+                start = driver.find_element_by_css_selector("span.start").get_attribute("innerText")
+                goal = driver.find_element_by_css_selector("span.goal").get_attribute("innerText")
+                return start, goal
+                
             def norm_toll():
                 normal_toll = driver.find_element_by_css_selector("span.toll-normal").get_attribute("innerText")
                 etc_toll = driver.find_element_by_css_selector("span.toll-etc").get_attribute("innerText")
@@ -87,6 +95,8 @@ class AllToll(FeeList):
                         box2.extend([0,0])
                     
                 def big_case():
+                    box1.insert(0,0)
+                    box2.insert(0,0)
                     if len(span_box1) == 1:
                         box1.extend([0,0])
                     if len(span_box2) == 1:
@@ -98,36 +108,33 @@ class AllToll(FeeList):
                     run_case = big_case()
                 return  box1, box2
             
+            name_of_ic = ic_name()
             get_norm_toll = norm_toll()
             get_box_toll = list(itertools.chain.from_iterable(box_toll()))
 
             #close session
             driver.quit()
     
-            toll = [[row['入口']],[row['出口']], get_norm_toll, get_box_toll]
+            toll = [name_of_ic, get_norm_toll, get_box_toll]
             merged_toll = list(itertools.chain.from_iterable(toll))
             self.buttonlist.append(merged_toll)
             time.sleep(10)
         return self.buttonlist
-     
+    
 kei = AllToll("1").get_toll("1")
 normal = AllToll("2").get_toll("2")
 chugata = AllToll("3").get_toll("3")
 ogata = AllToll("4").get_toll("4")
 toku = AllToll("5").get_toll("5")
 
-#change to pandas dataframe
-title_1 =  ['入口', '出口', '通常（現金）', 'ETC', 'ETC2.0', 
+title =  ['入口', '出口', '通常（現金）', 'ETC', 'ETC2.0', 
             '休日(ETC)', '深夜(ETC)', '還元率30%(ETC)', '還元率50%(ETC)', 
             '休日(ETC2.0)', '深夜(ETC2.0)','還元率30%(ETC2.0)', '還元率50%(ETC2.0)']
-title_2 = ['入口', '出口', '通常（現金）', 'ETC', 'ETC2.0', 
-           '深夜(ETC)', '還元率30%(ETC)', '還元率50%(ETC)', 
-           '深夜(ETC2.0)','還元率30%(ETC2.0)', '還元率50%(ETC2.0)']
-pd_kei = pd.DataFrame(kei, columns = title_1)
-pd_normal = pd.DataFrame(normal, columns = title_1)
-pd_chugata = pd.DataFrame(chugata, columns = title_2)
-pd_ogata = pd.DataFrame(ogata, columns = title_2)
-pd_toku = pd.DataFrame(toku, columns = title_2)
+pd_kei = pd.DataFrame(kei, columns = title)
+pd_normal = pd.DataFrame(normal, columns = title)
+pd_chugata = pd.DataFrame(chugata, columns = title)
+pd_ogata = pd.DataFrame(ogata, columns = title)
+pd_toku = pd.DataFrame(toku, columns = title)
 
 all_kei = pd_kei[pd_kei.columns[2:]].replace('[\$,円,分]', '', regex=True).astype(int)
 all_normal = pd_normal[pd_normal.columns[2:]].replace('[\$,円,分]', '', regex=True).astype(int)
@@ -151,7 +158,8 @@ fin_etc2 = pd.concat([pd_kei['入口'], pd_kei['出口'],
                       keys=['入口', '出口', '軽自動車', '普通車', '中型車', '大型車', '特大車'])
 
 fin_kyu = pd.concat([pd_kei['入口'], pd_kei['出口'], 
-                     all_kei['休日(ETC)'],all_normal['休日(ETC)']], axis=1,
+                     all_kei['休日(ETC)'],all_normal['休日(ETC)'],
+                     all_chugata['休日(ETC)'],all_ogata['休日(ETC)'],all_toku['休日(ETC)']], axis=1,
                      keys=['入口', '出口', '軽自動車', '普通車', '中型車', '大型車', '特大車'])
 
 fin_shya = pd.concat([pd_kei['入口'], pd_kei['出口'],
@@ -178,3 +186,9 @@ fin_2etc50p = pd.concat([pd_kei['入口'], pd_kei['出口'],
                          all_kei['還元率50%(ETC2.0)'],all_normal['還元率50%(ETC2.0)'],
                          all_chugata['還元率50%(ETC2.0)'],all_ogata['還元率50%(ETC2.0)'],all_toku['還元率50%(ETC2.0)']], axis=1,
                          keys=['入口', '出口', '軽自動車', '普通車', '中型車', '大型車', '特大車'])
+
+fin_data = [fin_gen, fin_etc, fin_etc2, fin_kyu, fin_shya, fin_etc30p, fin_etc50p, fin_2etc30p, fin_2etc50p]
+df_merged = reduce(lambda left,right: pd.merge(left, right, on = ['入口', '出口'], how='outer'), fin_data)
+
+with pd.ExcelWriter('toll all.xlsx') as writer:
+    df_merged.to_excel(writer, sheet)
