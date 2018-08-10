@@ -13,7 +13,9 @@ url = "http://search.w-nexco.co.jp/route.php"
 options = Options()
 options.add_argument('--headless')
 
-df = pd.read_csv('ryokin_test.csv')
+input_file = input("検索入力のCSVファイル名を入力してください（例:ryokin.csv)：")
+output_file = input("出力結果ファイル名を入力してください（例:ryokin_fees.xlsx）:")
+df = pd.read_csv(input_file)
 df_edit = df.dropna(subset=['入口','出口'])
 
 #new session
