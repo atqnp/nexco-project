@@ -190,5 +190,23 @@ fin_2etc50p = pd.concat([pd_kei['入口'], pd_kei['出口'],
 fin_data = [fin_gen, fin_etc, fin_etc2, fin_kyu, fin_shya, fin_etc30p, fin_etc50p, fin_2etc30p, fin_2etc50p]
 df_merged = reduce(lambda left,right: pd.merge(left, right, on = ['入口', '出口'], how='outer'), fin_data)
 
-with pd.ExcelWriter('toll all.xlsx') as writer:
-    df_merged.to_excel(writer, sheet)
+with pd.ExcelWriter('料金（全）.xlsx') as writer:
+    df_merged.to_excel(writer, sheet_name = 'まとめ')
+
+with pd.ExcelWriter('料金（生）.xlsx') as writer:
+    pd_kei.to_excel(writer, sheet name = '料金（軽自動車）')
+    pd_normal.to_excel(writer, sheet name = '料金（普通車）')
+    pd_chugata.to_excel(writer, sheet name = '料金（中型車）')
+    pd_ogata.to_excel(writer, sheet name = '料金（大型車）')
+    pd_toku.to_excel(writer, sheet name = '料金（特大車）')
+
+with pd.ExcelWriter('料金（種類ごとに）.xlsx') as writer:
+    fin_gen.to_excel(writer, sheet name = '料金（通常（現金））')
+    fin_etc.to_excel(writer, sheet name = '料金（ETC）')
+    fin_etc2.to_excel(writer, sheet name = '料金（ETC2.0）')
+    fin_kyu.to_excel(writer, sheet name = '料金（休日）')
+    fin_shya.to_excel(writer, sheet name = '料金（深夜）')
+    fin_etc30p.to_excel(writer, sheet name = '料金（還元率30%(ETC)）')
+    fin_etc50p.to_excel(writer, sheet name = '料金（還元率50%(ETC)）')
+    fin_2etc30p.to_excel(writer, sheet name = '料金（還元率30%(ETC2.0)）')
+    fin_2etc30p.to_excel(writer, sheet name = '料金（還元率50%(ETC2.0)）')
