@@ -1,9 +1,7 @@
 # Import library
 # ライブラリーをインポートする
 import pandas as pd
-import time
-import csv
-import itertools
+import sys, time, threading, csv, itertools
 from functools import reduce
 from selenium import webdriver
 from selenium.webdriver.support.ui import Select
