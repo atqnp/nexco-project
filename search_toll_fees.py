@@ -42,6 +42,9 @@ class AllToll(FeeList):
         FeeList.__init__(self)
         self.cartype_val = cartype_val
 
+    def fin_toll(self, cartype_val):
+        print("車種区分 : {}　検索終了".format(cartype_val))
+
     def get_toll(self, cartype_val):
         for index, row in df_edit.iterrows():
             #open the browser and navigate to the page
@@ -154,20 +157,29 @@ class AllToll(FeeList):
             time.sleep(10)
         return self.buttonlist
 
+print("""
+    検索中...
+    車種区分　: (1-軽・自動二輪, 2-普通車, 3-中型車, 4-大型車, 5- 特大車)
+""")
 #車種区分
 #Type of car: ("1"-軽・自動二輪, "2"-普通車, "3"-中型車, "4"-大型車, "5"- 特大車)
 #車種ごとにPython機能で実行
 kei = AllToll("1").get_toll("1")
+kei_fin = AllToll("1").fin_toll("1")
 normal = AllToll("2").get_toll("2")
+norm_fin = AllToll("2").fin_toll("2")
 chugata = AllToll("3").get_toll("3")
+chu_fin = AllToll("3").fin_toll("3")
 ogata = AllToll("4").get_toll("4")
+ogata_fin = AllToll("4").fin_toll("4")
 toku = AllToll("5").get_toll("5")
+toku_fin = AllToll("5").fin_toll("5")
 
 
 # Change list into Pandas DataFrame. Make another dataframe to exclude all unrelated symbols (円,分, etc.)
 # リストをPandasデータフレームに変更。もう一つのデータフレームを作り要らない記号を削除。
 # すべての上記プログラムを作動しましたら、下記プログラムを作動することができます。
-
+print("データを編集します...")
 #header for dataframe
 #データのヘッダー
 title =  ['入口', '出口', '通常（現金）', 'ETC', 'ETC2.0',
@@ -252,10 +264,6 @@ df_merged.columns = pd.MultiIndex.from_tuples([tuple(c.split('_')) for c in df_m
 
 # Export into Microsoft Excel file.
 # エクセルにエクスポートする。希望しているファイル名を入力できます。
-# 3種類のファイルが出力できます。
-# 1. まとめデータエクセルファイル
-# 2. 生データエクセルファイル
-# 3. 種類ごとに分けるデータエクセルファイル
 print("""
 エクセルにエクスポートする。希望しているファイル名を入力できます。
 3種類のファイルが出力できます。
