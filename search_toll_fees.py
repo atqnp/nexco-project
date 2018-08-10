@@ -1,3 +1,9 @@
+#入口,出口
+#妙高高原,茂原長南
+#本庄児玉,茂原北
+#佐賀大和,豊前
+#岩槻,加須
+
 # Import library
 # ライブラリーをインポートする
 import pandas as pd
@@ -26,7 +32,18 @@ input_file = input("検索入力のCSVファイルを入力してください（
 df = pd.read_csv(input_file)
 df_edit = df.dropna(subset=['入口','出口'])
 
-
+print("""
+検索日時を入力してください。
+検索日付..
+""")
+input_year = input("年：")
+input_month = input("月：")
+input_day = input("日：")
+input_week = input("週目：")
+year_val = ("day_{}_{}_{}_{}_0".format(input_year,input_month,input_day,input_week))
+print("検索時間..")
+input_hr =　input("時：")
+input_min =　input("分：")
 # Run the whole program and iterate through each row. A time.sleep is put to add time for response. Prevent from being recognized as bot
 # プログラムを実行。全車種を検索する。
 
@@ -43,7 +60,7 @@ class AllToll(FeeList):
         self.cartype_val = cartype_val
 
     def fin_toll(self, cartype_val):
-        print("車種区分 : {}　検索終了".format(cartype_val))
+        return print("車種区分 : {}　検索終了".format(cartype_val))
 
     def get_toll(self, cartype_val):
         for index, row in df_edit.iterrows():
@@ -57,8 +74,8 @@ class AllToll(FeeList):
             driver.find_element_by_id("calImgDiv").click()
             driver.find_element_by_id("day_2018_8_6_1_0").click() #日付設定　#set date (2018/8/6)
             time.sleep(1)
-            select_hour = Select(driver.find_element_by_id("sl_hour_id")).select_by_value("10") #時間設定　#set time (午前10時)
-            select_min = Select(driver.find_element_by_id("sl_min_id")).select_by_value("0")
+            select_hour = Select(driver.find_element_by_id("sl_hour_id")).select_by_value(input_hr) #時間設定　#set time (午前10時)
+            select_min = Select(driver.find_element_by_id("sl_min_id")).select_by_value(input_min)
             time.sleep(1)
             in_field = driver.find_element_by_name("fnm") #出発IC
             in_field.send_keys(row['入口'])
@@ -78,11 +95,10 @@ class AllToll(FeeList):
             driver.find_element_by_css_selector(".submit-btn").send_keys("\n")
             time.sleep(3)
             driver.find_element_by_css_selector(".submit-btn").send_keys("\n")
-            time.sleep(2)
 
             #wait for page to load and click ETC料金順
             #ページを待つとETC料金順をクリック
-            time.sleep(3)
+            time.sleep(4)
             driver.find_element_by_id("pritab9").click()
             #wait for page to load and get the toll fee
             #ページを待つとデータを取る
@@ -106,16 +122,18 @@ class AllToll(FeeList):
                 for span1 in span_box1:
                     test1 = span1.get_attribute("innerText")
                     box1.append(test1)
-                if len(span_box1) > 4:
-                    del box1[2:4]
                 box2_toll = driver.find_element_by_xpath('//*[@class="etc-info pc-stay pos-etc2_box"]/div[2]/div')
                 span_box2 = box2_toll.find_elements_by_tag_name("span")
                 box2 = []
                 for span2 in span_box2:
                     test2 = span2.get_attribute("innerText")
                     box2.append(test2)
-                if len(span_box1) > 4:
-                    del box2[2:5]
+
+                def extra_case(box_name):
+                    new_box = []
+                    new_box.append(box_name[0:2])
+                    new_box.append(box_name[-2:])
+                    return new_box
 
                 def normal_case():
                     if len(span_box1) == 1:
@@ -133,6 +151,10 @@ class AllToll(FeeList):
                     if len(span_box2) == 1:
                         box2.extend([0,0])
 
+                if len(span_box1) > 4:
+                    box1 = list(itertools.chain.from_iterable(extra_case(box1)))
+                if len(span_box2) > 4:
+                    box2 = list(itertools.chain.from_iterable(extra_case(box2)))
                 if cartype_val == "1" or cartype_val == "2":
                     run_case = normal_case()
                 else:
@@ -154,7 +176,7 @@ class AllToll(FeeList):
             self.buttonlist.append(merged_toll)
             #wait time before next session
             #次のセッションをスタートする待つ時間
-            time.sleep(10)
+            time.sleep(5)
         return self.buttonlist
 
 print("""
@@ -179,7 +201,7 @@ toku_fin = AllToll("5").fin_toll("5")
 # Change list into Pandas DataFrame. Make another dataframe to exclude all unrelated symbols (円,分, etc.)
 # リストをPandasデータフレームに変更。もう一つのデータフレームを作り要らない記号を削除。
 # すべての上記プログラムを作動しましたら、下記プログラムを作動することができます。
-print("データを編集します...")
+print("データを編集中...")
 #header for dataframe
 #データのヘッダー
 title =  ['入口', '出口', '通常（現金）', 'ETC', 'ETC2.0',
@@ -258,6 +280,7 @@ fin_2etc50p = pd.concat([pd_kei['入口'], pd_kei['出口'],
 # Compile all data into one sheet
 # 全てのデータを一つのシートにまとめる。フォーマット：
 # （通常（現金）、ETC、ETC2.0、深夜、休日、平日朝夕 還元率30%(ETC)、平日朝夕 還元率50%(ETC)、平日朝夕 還元率30%(ETC2.0)、平日朝夕 還元率50%(ETC2.0）
+print("全てのデータを一つのシートにまとめる中...")
 fin_data = [fin_gen, fin_etc, fin_etc2, fin_kyu, fin_shya, fin_etc30p, fin_etc50p, fin_2etc30p, fin_2etc50p]
 df_merged = reduce(lambda left,right: pd.merge(left, right, on = ['入口', '出口'], how='outer'), fin_data)
 df_merged.columns = pd.MultiIndex.from_tuples([tuple(c.split('_')) for c in df_merged.columns]))
