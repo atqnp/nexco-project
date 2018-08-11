@@ -36,14 +36,12 @@ print("""
 検索日時を入力してください。
 検索日付..
 """)
-input_year = input("年：")
-input_month = input("月：")
-input_day = input("日：")
-input_week = input("週目：")
-year_val = ("day_{}_{}_{}_{}_0".format(input_year,input_month,input_day,input_week))
+in_yr, in_mth, in_day = input("日付（例：2018/7/9）：").split("/")
+in_week = input("第何週目（例：2018/7/9は第2週目で2を入力する）：")
+date_val = ("day_{}_{}_{}_{}_0".format(in_yr, in_mth, in_day,in_week))
 print("検索時間..")
-input_hr =　input("時：")
-input_min =　input("分：")
+input_hr = input("時：")
+input_min = input("分：")
 # Run the whole program and iterate through each row. A time.sleep is put to add time for response. Prevent from being recognized as bot
 # プログラムを実行。全車種を検索する。
 
@@ -72,9 +70,9 @@ class AllToll(FeeList):
             #fill in the form
             #検索フォーム入力
             driver.find_element_by_id("calImgDiv").click()
-            driver.find_element_by_id("day_2018_8_6_1_0").click() #日付設定　#set date (2018/8/6)
+            driver.find_element_by_id(date_val).click() #日付設定　#set date (2018/8/6)
             time.sleep(1)
-            select_hour = Select(driver.find_element_by_id("sl_hour_id")).select_by_value(input_hr) #時間設定　#set time (午前10時)
+            select_hour = Select(driver.find_element_by_id("sl_hour_id")).select_by_value(input_hr) #時間設定　#set time
             select_min = Select(driver.find_element_by_id("sl_min_id")).select_by_value(input_min)
             time.sleep(1)
             in_field = driver.find_element_by_name("fnm") #出発IC
