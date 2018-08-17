@@ -37,7 +37,7 @@ print("""
 検索日付..
 """)
 in_yr, in_mth, in_day = input("日付（例：2018/7/9）：").split("/")
-in_week = input("第何週目（例：2018/7/9は第2週目で2を入力する）：")
+in_week = input("何週目（例：2018/7/9は第2週目で2を入力する）：")
 date_val = ("day_{}_{}_{}_{}_0".format(in_yr, in_mth, in_day,in_week))
 print("検索時間..")
 input_hr = input("時：")
