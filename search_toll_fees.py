@@ -198,7 +198,9 @@ kei_fin = AllToll("1").fin_toll("1")
 # Change list into Pandas DataFrame. Make another dataframe to exclude all unrelated symbols (円,分, etc.)
 # リストをPandasデータフレームに変更。もう一つのデータフレームを作り要らない記号を削除。
 # すべての上記プログラムを作動しましたら、下記プログラムを作動することができます。
-print("データを編集中...")
+print("""
+    データを編集中...
+""")
 
 #header for dataframe
 #データのヘッダー
@@ -211,14 +213,6 @@ def edit_to_pandas(cartype):
 
 def edit_to_int(cartype):
     return cartype[cartype.columns[2:]].replace('[\$,円,分]', '', regex=True).astype(int)
-
-def compile_all(tolltype):
-    return pd.concat([pd_kei['入口'], pd_kei['出口'],
-                     all_kei[tolltype],all_normal[tolltype],
-                     all_chugata[tolltype],all_ogata[tolltype],all_toku[tolltype]], axis=1,
-                     keys=['入口', '出口', '通常(現金)_軽自動車', '通常(現金)_普通車',
-                           '通常(現金)_中型車', '通常(現金)_大型車', '通常(現金)_特大車'])
-
 
 #Pandas
 pd_kei = edit_to_pandas(kei)
@@ -236,15 +230,59 @@ all_kei = edit_to_int(pd_kei)
 
 # Compile all the fees based on the fee type (cash, ETC, ETC2.0 and others)
 # 料金は種類ごとに編集
-fin_gen = compile_all('通常(現金)')
-fin_etc = compile_all('ETC')
-fin_etc2 = compile_all('ETC2.0')
-fin_kyu = compile_all('休日(ETC)')
-fin_shya = compile_all('深夜(ETC)')
-fin_etc30p = compile_all('還元率30%(ETC)')
-fin_etc50p = compile_all('還元率50%(ETC)')
-fin_2etc30p = compile_all('還元率30%(ETC2.0)')
-fin_2etc50p = compile_all('還元率50%(ETC2.0)')
+fin_gen = pd.concat([pd_kei['入口'], pd_kei['出口'],
+                     all_kei['通常(現金)'],all_normal['通常(現金)'],
+                     all_chugata['通常(現金)'],all_ogata['通常(現金)'],all_toku['通常(現金)']], axis=1,
+                     keys=['入口', '出口', '通常(現金)_軽自動車', '通常(現金)_普通車',
+                           '通常(現金)_中型車', '通常(現金)_大型車', '通常(現金)_特大車'])
+
+fin_etc = pd.concat([pd_kei['入口'], pd_kei['出口'],
+                     all_kei['ETC'],all_normal['ETC'],
+                     all_chugata['ETC'],all_ogata['ETC'],all_toku['ETC']], axis=1,
+                     keys=['入口', '出口', 'ETC_軽自動車', 'ETC_普通車',
+                           'ETC_中型車', 'ETC_大型車', 'ETC_特大車'])
+
+fin_etc2 = pd.concat([pd_kei['入口'], pd_kei['出口'],
+                      all_kei['ETC2.0'],all_normal['ETC2.0'],
+                      all_chugata['ETC2.0'],all_ogata['ETC2.0'],all_toku['ETC2.0']], axis=1,
+                      keys=['入口', '出口', 'ETC2.0_軽自動車', 'ETC2.0_普通車',
+                            'ETC2.0_中型車', 'ETC2.0_大型車', 'ETC2.0_特大車'])
+
+fin_kyu = pd.concat([pd_kei['入口'], pd_kei['出口'],
+                     all_kei['休日(ETC)'],all_normal['休日(ETC)'],
+                     all_chugata['休日(ETC)'],all_ogata['休日(ETC)'],all_toku['休日(ETC)']], axis=1,
+                     keys=['入口', '出口', '休日_軽自動車', '休日_普通車',
+                           '休日_中型車', '休日_大型車', '休日_特大車'])
+
+fin_shya = pd.concat([pd_kei['入口'], pd_kei['出口'],
+                      all_kei['深夜(ETC)'],all_normal['深夜(ETC)'],
+                      all_chugata['深夜(ETC)'],all_ogata['深夜(ETC)'],all_toku['深夜(ETC)']], axis=1,
+                      keys=['入口', '出口', '深夜_軽自動車', '深夜_普通車',
+                            '深夜_中型車', '深夜_大型車', '深夜_特大車'])
+
+fin_etc30p = pd.concat([pd_kei['入口'], pd_kei['出口'],
+                        all_kei['還元率30%(ETC)'],all_normal['還元率30%(ETC)'],
+                        all_chugata['還元率30%(ETC)'],all_ogata['還元率30%(ETC)'],all_toku['還元率30%(ETC)']], axis=1,
+                        keys=['入口', '出口', '還元率30%(ETC)_軽自動車', '還元率30%(ETC)_普通車',
+                              '還元率30%(ETC)_中型車', '還元率30%(ETC)_大型車', '還元率30%(ETC)_特大車'])
+
+fin_etc50p = pd.concat([pd_kei['入口'], pd_kei['出口'],
+                        all_kei['還元率50%(ETC)'],all_normal['還元率50%(ETC)'],
+                        all_chugata['還元率50%(ETC)'],all_ogata['還元率50%(ETC)'],all_toku['還元率50%(ETC)']], axis=1,
+                        keys=['入口', '出口', '還元率50%(ETC)_軽自動車', '還元率50%(ETC)_普通車',
+                              '還元率50%(ETC)_中型車', '還元率50%(ETC)_大型車', '還元率50%(ETC)_特大車'])
+
+fin_2etc30p = pd.concat([pd_kei['入口'], pd_kei['出口'],
+                         all_kei['還元率30%(ETC2.0)'],all_normal['還元率30%(ETC2.0)'],
+                         all_chugata['還元率30%(ETC2.0)'],all_ogata['還元率30%(ETC2.0)'],all_toku['還元率30%(ETC2.0)']], axis=1,
+                         keys=['入口', '出口', '還元率30%(ETC2.0)_軽自動車', '還元率30%(ETC2.0)_普通車',
+                               '還元率30%(ETC2.0)_中型車', '還元率30%(ETC2.0)_大型車', '還元率30%(ETC2.0)_特大車'])
+
+fin_2etc50p = pd.concat([pd_kei['入口'], pd_kei['出口'],
+                         all_kei['還元率50%(ETC2.0)'],all_normal['還元率50%(ETC2.0)'],
+                         all_chugata['還元率50%(ETC2.0)'],all_ogata['還元率50%(ETC2.0)'],all_toku['還元率50%(ETC2.0)']], axis=1,
+                         keys=['入口', '出口', '還元率50%(ETC2.0)_軽自動車', '還元率50%(ETC2.0)_普通車',
+                               '還元率50%(ETC2.0)_中型車', '還元率50%(ETC2.0)_大型車', '還元率50%(ETC2.0)_特大車'])
 
 
 # Compile all data into one sheet
@@ -258,17 +296,18 @@ df_merged.columns = pd.MultiIndex.from_tuples([tuple(c.split('_')) for c in df_m
 # Export into Microsoft Excel file.
 # エクセルにエクスポートする。希望しているファイル名を入力できます。
 print("""
-エクセルにエクスポートする。希望しているファイル名を入力できます。
-3種類のファイルが出力できます。
- 1. まとめデータエクセルファイル
- 2. 生データエクセルファイル
- 3. 種類ごとに分けるデータエクセルファイル
+    エクセルにエクスポートする。希望しているファイル名を入力できます。
+    3種類のファイルが出力できます。
+      1. まとめデータエクセルファイルとCSVファイル
+      2. 生データエクセルファイル
+      3. 種類ごとに分けるデータエクセルファイル
 """)
 output_file = input("出力結果ファイル名を入力してください（例:ryokin_fees.xlsx）:")
+output_file_csv = input("出力結果ファイル名を入力してください（例:ryokin_fees.csv）:")
 raw_file = input("出力結果の生データファイル名を入力してください（例:ryokin_fees.xlsx）:")
 omake_file = input("出力結果の種類ごとに分けるデータファイル名を入力してください（例:ryokin_fees.xlsx）:")
 
-df_merged.to_csv('compile_all_toll.csv')
+df_merged.to_csv(output_file_csv)
 with pd.ExcelWriter(output_file) as writer:
     df_merged.to_excel(writer, sheet_name = 'まとめ')
 
