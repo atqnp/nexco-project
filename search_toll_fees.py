@@ -3,6 +3,7 @@
 #本庄児玉,茂原北
 #佐賀大和,豊前
 #岩槻,加須
+#所沢,岩槻
 
 # Import library
 # ライブラリーをインポートする
@@ -27,7 +28,7 @@ url = "http://search.w-nexco.co.jp/route.php"
 print("""
 CSVファイル名を入力します。このファイルはこのプログラムと一緒に同じファイルに入れていると確認してください。
 """)
-input_file = input("検索入力のCSVファイルを入力してください（例:ryokin.csv)：")
+input_file = input("検索入力のCSVファイルを入力してください（例:ryokin.csv)： ")
 df = pd.read_csv(input_file)
 df_edit = df.dropna(subset=['入口','出口'])
 
@@ -35,14 +36,14 @@ print("""
 検索日時を入力してください。
 検索日付...
 """)
-in_yr, in_mth, in_day = input("日付（例：2018/9/3）：").split("/")
-in_week = input("曜日（日-0, 月-1, 火-2, 水-3, 木-4, 金-5, 土-6）：")
+in_yr, in_mth, in_day = input("日付（例：2018/9/3）： ").split("/")
+in_week = input("曜日（日-0, 月-1, 火-2, 水-3, 木-4, 金-5, 土-6）： ")
 date_val = ("day_{}_{}_{}_{}_0".format(in_yr, in_mth, in_day,in_week))
 print("""
 検索時間...
     """)
-input_hr = input("時：")
-input_min = input("分（10分毎で00の場合は0だけ入力してください）：")
+input_hr = input("時（0から23までだけ入力してください）：")
+input_min = input("分（10分毎で00の場合は0だけ入力してください）： ")
 # Run the whole program and iterate through each row. A time.sleep is put to add time for response. Prevent from being recognized as bot
 # プログラムを実行。全車種を検索する。
 
@@ -72,36 +73,30 @@ class AllToll(FeeList):
             #検索フォーム入力
             driver.find_element_by_id("calImgDiv").click()
             driver.find_element_by_id(date_val).click() #日付設定　#set date (2018/8/6)
-            time.sleep(1)
             select_hour = Select(driver.find_element_by_id("sl_hour_id")).select_by_value(input_hr) #時間設定　#set time
             select_min = Select(driver.find_element_by_id("sl_min_id")).select_by_value(input_min)
-            time.sleep(1)
             in_field = driver.find_element_by_name("fnm") #出発IC
             in_field.send_keys(row['入口'])
-            time.sleep(1)
             out_field = driver.find_element_by_name("tnm") #到着IC
             out_field.send_keys(row['出口'])
-            time.sleep(1)
             select_car_type = Select(driver.find_element_by_name("cartyp")).select_by_value(cartype_val) #車種区分
-            time.sleep(1)
             #通らない道路　（二つしかセットできない）
             #set detour (only 2 can be set)
             #"G1110"- C3 外環道, "G6000"-首都高速
             select_detour1 = Select(driver.find_element_by_id("detour1_id")).select_by_value("G1110")
-            time.sleep(1)
             select_detour2 = Select(driver.find_element_by_id("detour2_id")).select_by_value("G6000")
             #検索する
             driver.find_element_by_css_selector(".submit-btn").send_keys("\n")
-            time.sleep(3)
+            time.sleep(2)
             driver.find_element_by_css_selector(".submit-btn").send_keys("\n")
 
             #wait for page to load and click ETC料金順
             #ページを待つとETC料金順をクリック
-            time.sleep(4)
+            time.sleep(2)
             driver.find_element_by_id("pritab9").click()
             #wait for page to load and get the toll fee
             #ページを待つとデータを取る
-            time.sleep(3)
+            time.sleep(2)
             #出発IC名と到着IC名
             def ic_name():
                 start = driver.find_element_by_css_selector("span.start").get_attribute("innerText")
@@ -137,27 +132,37 @@ class AllToll(FeeList):
                         new_box.append(box_name[0:1])
                         new_box.append(box_name[-2:])
                     return new_box
+                
+                def less_case(box_name):
+                    new_box = []
+                    new_box.append(box_name[0:1])
+                    return new_box
 
                 def normal_case():
-                    if len(span_box1) == 1:
+                    if len(box1) == 1:
                         box1.insert(0,0)
                         box1.extend([0,0])
-                    if len(span_box2) == 1:
+                    if len(box2) == 1:
                         box2.insert(0,0)
                         box2.extend([0,0])
 
                 def big_case():
+                    if len(box1) == 1:
+                        box1.extend([0,0])
+                    if len(box2) == 1:
+                        box2.extend([0,0])
                     box1.insert(0,0)
                     box2.insert(0,0)
-                    if len(span_box1) == 1:
-                        box1.extend([0,0])
-                    if len(span_box2) == 1:
-                        box2.extend([0,0])
                     
                 if len(span_box1) >= 4:
                     box1 = list(itertools.chain.from_iterable(extra_case(box1)))
+                elif len(span_box1) < 3:
+                    box1 = list(itertools.chain.from_iterable(less_case(box1)))
                 if len(span_box2) >= 4:
                     box2 = list(itertools.chain.from_iterable(extra_case(box2)))
+                elif len(span_box2) < 3:
+                    box2 = list(itertools.chain.from_iterable(less_case(box2)))
+                
                 if cartype_val == "1" or cartype_val == "2":
                     run_case = normal_case()
                 else:
@@ -179,26 +184,25 @@ class AllToll(FeeList):
             self.buttonlist.append(merged_toll)
             #wait time before next session
             #次のセッションをスタートする待つ時間
-            time.sleep(5)
+            time.sleep(4)
         return self.buttonlist
 
 print("""
-    検索中...
-    車種区分　: (1-軽・自動二輪, 2-普通車, 3-中型車, 4-大型車, 5- 特大車)
+    検索中... [車種区分　: (1-軽・自動二輪, 2-普通車, 3-中型車, 4-大型車, 5-特大車)]
 """)
 #車種区分
 #Type of car: ("1"-軽・自動二輪, "2"-普通車, "3"-中型車, "4"-大型車, "5"- 特大車)
 #車種ごとにPython機能で実行
 kei = AllToll("1").get_toll("1")
 kei_fin = AllToll("1").fin_toll("1")
-normal = AllToll("2").get_toll("2")
-norm_fin = AllToll("2").fin_toll("2")
+#normal = AllToll("2").get_toll("2")
+#norm_fin = AllToll("2").fin_toll("2")
 chugata = AllToll("3").get_toll("3")
 chu_fin = AllToll("3").fin_toll("3")
-ogata = AllToll("4").get_toll("4")
-ogata_fin = AllToll("4").fin_toll("4")
-toku = AllToll("5").get_toll("5")
-toku_fin = AllToll("5").fin_toll("5")
+#ogata = AllToll("4").get_toll("4")
+#ogata_fin = AllToll("4").fin_toll("4")
+#toku = AllToll("5").get_toll("5")
+#toku_fin = AllToll("5").fin_toll("5")
 
 
 # Change list into Pandas DataFrame. Make another dataframe to exclude all unrelated symbols (円,分, etc.)
@@ -239,6 +243,8 @@ all_normal = edit_to_int(pd_normal)
 all_chugata = edit_to_int(pd_chugata)
 all_ogata = edit_to_int(pd_ogata)
 all_toku = edit_to_int(pd_toku)
+
+print("done")
 
 # Compile all the fees based on the fee type (cash, ETC, ETC2.0 and others)
 # 料金は種類ごとに編集
