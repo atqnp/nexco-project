@@ -270,7 +270,7 @@ print("""
       3. 種類ごとに分けるデータエクセルファイル
 """)
 output_file = input("出力結果ファイル名を入力してください（例:ryokin_fees.xlsx）:")
-output_file_csv = input("出力結果ファイル名を入力してください（例:ryokin_fees.csv）:")
+output_file_csv = input("出力結果のCSVファイル名を入力してください（例:ryokin_fees.csv）:")
 raw_file = input("出力結果の生データファイル名を入力してください（例:ryokin_fees.xlsx）:")
 omake_file = input("出力結果の種類ごとに分けるデータファイル名を入力してください（例:ryokin_fees.xlsx）:")
 
