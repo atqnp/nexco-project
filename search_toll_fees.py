@@ -25,21 +25,21 @@ url = "http://search.w-nexco.co.jp/route.php"
 # CSVファイルを読み込み、空セルを削除。CSVファイル名を入力してください。そのファイルはこのノートと一緒に同じファイルに入れてください。
 #read CSV
 print("""
-    CSVファイル名を入力します。このファイルはこのプログラムと一緒に同じファイルに入れていると確認してください。
+CSVファイル名を入力します。このファイルはこのプログラムと一緒に同じファイルに入れていると確認してください。
 """)
 input_file = input("検索入力のCSVファイルを入力してください（例:ryokin.csv)：")
 df = pd.read_csv(input_file)
 df_edit = df.dropna(subset=['入口','出口'])
 
 print("""
-    検索日時を入力してください。
-    検索日付...
+検索日時を入力してください。
+検索日付...
 """)
 in_yr, in_mth, in_day = input("日付（例：2018/9/3）：").split("/")
 in_week = input("曜日（日-0, 月-1, 火-2, 水-3, 木-4, 金-5, 土-6）：")
 date_val = ("day_{}_{}_{}_{}_0".format(in_yr, in_mth, in_day,in_week))
 print("""
-    検索時間...
+検索時間...
     """)
 input_hr = input("時：")
 input_min = input("分（10分毎で00の場合は0だけ入力してください）：")
@@ -255,7 +255,7 @@ fin_2etc50p = compile_toll('還元率50%(ETC2.0)')
 # Compile all data into one sheet
 # 全てのデータを一つのシートにまとめる。フォーマット：
 # （通常（現金）、ETC、ETC2.0、深夜、休日、平日朝夕 還元率30%(ETC)、平日朝夕 還元率50%(ETC)、平日朝夕 還元率30%(ETC2.0)、平日朝夕 還元率50%(ETC2.0）
-print("全てのデータを一つのシートにまとめる中...")
+print("全てのデータを一つのシートにまとめる...")
 fin_data = [fin_gen, fin_etc, fin_etc2, fin_kyu, fin_shya, fin_etc30p, fin_etc50p, fin_2etc30p, fin_2etc50p]
 df_merged = reduce(lambda left,right: pd.merge(left, right, on = ['入口', '出口'], how='outer'), fin_data)
 df_merged.columns = pd.MultiIndex.from_tuples([tuple(c.split('_')) for c in df_merged.columns])
@@ -263,11 +263,12 @@ df_merged.columns = pd.MultiIndex.from_tuples([tuple(c.split('_')) for c in df_m
 # Export into Microsoft Excel file.
 # エクセルにエクスポートする。希望しているファイル名を入力できます。
 print("""
-    エクセルにエクスポートする。希望しているファイル名を入力できます。
-    3種類のファイルが出力できます。
-      1. まとめデータエクセルファイルとCSVファイル
-      2. 生データエクセルファイル
-      3. 種類ごとに分けるデータエクセルファイル
+エクセルにエクスポートする。希望しているファイル名を入力できます。
+4種類のファイルが出力できます。
+    1. まとめデータのエクセルファイル
+    2. まとめデータのCSVファイル
+    2. 生データのエクセルファイル
+    3. 種類ごとに分けるデータのエクセルファイル
 """)
 output_file = input("出力結果ファイル名を入力してください（例:ryokin_fees.xlsx）:")
 output_file_csv = input("出力結果のCSVファイル名を入力してください（例:ryokin_fees.csv）:")
