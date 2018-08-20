@@ -21,7 +21,6 @@ options = Options()
 options.add_argument('--headless')
 url = "http://search.w-nexco.co.jp/route.php"
 
-
 # This will read the csv file of the list and delete the empty rows with no IC name available.
 # CSVファイルを読み込み、空セルを削除。CSVファイル名を入力してください。そのファイルはこのノートと一緒に同じファイルに入れてください。
 #read CSV
@@ -36,8 +35,8 @@ print("""
 検索日時を入力してください。
 検索日付..
 """)
-in_yr, in_mth, in_day = input("日付（例：2018/7/9）：").split("/")
-in_week = input("何週目（例：2018/7/9は第2週目で2を入力する）：")
+in_yr, in_mth, in_day = input("日付（例：2018/9/3）：").split("/")
+in_week = input("曜日（日-0,月-1,火-2,水-3,木-4,金-5,土-6）：")
 date_val = ("day_{}_{}_{}_{}_0".format(in_yr, in_mth, in_day,in_week))
 print("検索時間..")
 input_hr = input("時：")
@@ -186,93 +185,66 @@ print("""
 #車種ごとにPython機能で実行
 kei = AllToll("1").get_toll("1")
 kei_fin = AllToll("1").fin_toll("1")
-normal = AllToll("2").get_toll("2")
-norm_fin = AllToll("2").fin_toll("2")
-chugata = AllToll("3").get_toll("3")
-chu_fin = AllToll("3").fin_toll("3")
-ogata = AllToll("4").get_toll("4")
-ogata_fin = AllToll("4").fin_toll("4")
-toku = AllToll("5").get_toll("5")
-toku_fin = AllToll("5").fin_toll("5")
+#normal = AllToll("2").get_toll("2")
+#norm_fin = AllToll("2").fin_toll("2")
+#chugata = AllToll("3").get_toll("3")
+#chu_fin = AllToll("3").fin_toll("3")
+#ogata = AllToll("4").get_toll("4")
+#ogata_fin = AllToll("4").fin_toll("4")
+#toku = AllToll("5").get_toll("5")
+#toku_fin = AllToll("5").fin_toll("5")
 
 
 # Change list into Pandas DataFrame. Make another dataframe to exclude all unrelated symbols (円,分, etc.)
 # リストをPandasデータフレームに変更。もう一つのデータフレームを作り要らない記号を削除。
 # すべての上記プログラムを作動しましたら、下記プログラムを作動することができます。
 print("データを編集中...")
+
 #header for dataframe
 #データのヘッダー
 title =  ['入口', '出口', '通常（現金）', 'ETC', 'ETC2.0',
-            '休日(ETC)', '深夜(ETC)', '還元率30%(ETC)', '還元率50%(ETC)',
-            '休日(ETC2.0)', '深夜(ETC2.0)','還元率30%(ETC2.0)', '還元率50%(ETC2.0)']
-#Pandas
-pd_kei = pd.DataFrame(kei, columns = title)
-pd_normal = pd.DataFrame(normal, columns = title)
-pd_chugata = pd.DataFrame(chugata, columns = title)
-pd_ogata = pd.DataFrame(ogata, columns = title)
-pd_toku = pd.DataFrame(toku, columns = title)
-#change data to int
-all_kei = pd_kei[pd_kei.columns[2:]].replace('[\$,円,分]', '', regex=True).astype(int)
-all_normal = pd_normal[pd_normal.columns[2:]].replace('[\$,円,分]', '', regex=True).astype(int)
-all_chugata = pd_chugata[pd_chugata.columns[2:]].replace('[\$,円,分]', '', regex=True).astype(int)
-all_ogata = pd_ogata[pd_ogata.columns[2:]].replace('[\$,円,分]', '', regex=True).astype(int)
-all_toku = pd_toku[pd_toku.columns[2:]].replace('[\$,円,分]', '', regex=True).astype(int)
+          '休日(ETC)', '深夜(ETC)', '還元率30%(ETC)', '還元率50%(ETC)',
+          '休日(ETC2.0)', '深夜(ETC2.0)','還元率30%(ETC2.0)', '還元率50%(ETC2.0)']
 
-# Compile all the fees based on the fee type (cash, ETC, ETC2.0 and others)
-# 料金は種類ごとに編集
-fin_gen = pd.concat([pd_kei['入口'], pd_kei['出口'],
-                     all_kei['通常(現金)'],all_normal['通常(現金)'],
-                     all_chugata['通常(現金)'],all_ogata['通常(現金)'],all_toku['通常(現金)']], axis=1,
+def edit_to_pandas(cartype):
+    return pd.DataFrame(cartype, columns = title)
+
+def edit_to_int(cartype):
+    return cartype[cartype.columns[2:]].replace('[\$,円,分]', '', regex=True).astype(int)
+
+def compile_all(tolltype):
+    return pd.concat([pd_kei['入口'], pd_kei['出口'],
+                     all_kei[tolltype],all_normal[tolltype],
+                     all_chugata[tolltype],all_ogata[tolltype],all_toku[tolltype]], axis=1,
                      keys=['入口', '出口', '通常(現金)_軽自動車', '通常(現金)_普通車',
                            '通常(現金)_中型車', '通常(現金)_大型車', '通常(現金)_特大車'])
 
-fin_etc = pd.concat([pd_kei['入口'], pd_kei['出口'],
-                     all_kei['ETC'],all_normal['ETC'],
-                     all_chugata['ETC'],all_ogata['ETC'],all_toku['ETC']], axis=1,
-                     keys=['入口', '出口', 'ETC_軽自動車', 'ETC_普通車',
-                           'ETC_中型車', 'ETC_大型車', 'ETC_特大車'])
 
-fin_etc2 = pd.concat([pd_kei['入口'], pd_kei['出口'],
-                      all_kei['ETC2.0'],all_normal['ETC2.0'],
-                      all_chugata['ETC2.0'],all_ogata['ETC2.0'],all_toku['ETC2.0']], axis=1,
-                      keys=['入口', '出口', 'ETC2.0_軽自動車', 'ETC2.0_普通車',
-                            'ETC2.0_中型車', 'ETC2.0_大型車', 'ETC2.0_特大車'])
+#Pandas
+pd_kei = edit_to_pandas(kei)
+#pd_normal = edit_to_pandas(normal)
+#pd_chugata = edit_to_pandas(chugata)
+#pd_ogata = edit_to_pandas(ogata)
+#pd_toku = edit_to_pandas(toku)
 
-fin_kyu = pd.concat([pd_kei['入口'], pd_kei['出口'],
-                     all_kei['休日(ETC)'],all_normal['休日(ETC)'],
-                     all_chugata['休日(ETC)'],all_ogata['休日(ETC)'],all_toku['休日(ETC)']], axis=1,
-                     keys=['入口', '出口', '休日_軽自動車', '休日_普通車',
-                           '休日_中型車', '休日_大型車', '休日_特大車'])
+#change data to int
+all_kei = edit_to_int(pd_kei)
+#all_normal = edit_to_int(pd_normal)
+#all_chugata = edit_to_int(pd_chugata)
+#all_ogata = edit_to_int(pd_ogata)
+#all_toku = edit_to_int(pd_toku)
 
-fin_shya = pd.concat([pd_kei['入口'], pd_kei['出口'],
-                      all_kei['深夜(ETC)'],all_normal['深夜(ETC)'],
-                      all_chugata['深夜(ETC)'],all_ogata['深夜(ETC)'],all_toku['深夜(ETC)']], axis=1,
-                      keys=['入口', '出口', '深夜_軽自動車', '深夜_普通車',
-                            '深夜_中型車', '深夜_大型車', '深夜_特大車'])
-
-fin_etc30p = pd.concat([pd_kei['入口'], pd_kei['出口'],
-                        all_kei['還元率30%(ETC)'],all_normal['還元率30%(ETC)'],
-                        all_chugata['還元率30%(ETC)'],all_ogata['還元率30%(ETC)'],all_toku['還元率30%(ETC)']], axis=1,
-                        keys=['入口', '出口', '還元率30%(ETC)_軽自動車', '還元率30%(ETC)_普通車',
-                              '還元率30%(ETC)_中型車', '還元率30%(ETC)_大型車', '還元率30%(ETC)_特大車'])
-
-fin_etc50p = pd.concat([pd_kei['入口'], pd_kei['出口'],
-                        all_kei['還元率50%(ETC)'],all_normal['還元率50%(ETC)'],
-                        all_chugata['還元率50%(ETC)'],all_ogata['還元率50%(ETC)'],all_toku['還元率50%(ETC)']], axis=1,
-                        keys=['入口', '出口', '還元率50%(ETC)_軽自動車', '還元率50%(ETC)_普通車',
-                              '還元率50%(ETC)_中型車', '還元率50%(ETC)_大型車', '還元率50%(ETC)_特大車'])
-
-fin_2etc30p = pd.concat([pd_kei['入口'], pd_kei['出口'],
-                         all_kei['還元率30%(ETC2.0)'],all_normal['還元率30%(ETC2.0)'],
-                         all_chugata['還元率30%(ETC2.0)'],all_ogata['還元率30%(ETC2.0)'],all_toku['還元率30%(ETC2.0)']], axis=1,
-                         keys=['入口', '出口', '還元率30%(ETC2.0)_軽自動車', '還元率30%(ETC2.0)_普通車',
-                               '還元率30%(ETC2.0)_中型車', '還元率30%(ETC2.0)_大型車', '還元率30%(ETC2.0)_特大車'])
-
-fin_2etc50p = pd.concat([pd_kei['入口'], pd_kei['出口'],
-                         all_kei['還元率50%(ETC2.0)'],all_normal['還元率50%(ETC2.0)'],
-                         all_chugata['還元率50%(ETC2.0)'],all_ogata['還元率50%(ETC2.0)'],all_toku['還元率50%(ETC2.0)']], axis=1,
-                         keys=['入口', '出口', '還元率50%(ETC2.0)_軽自動車', '還元率50%(ETC2.0)_普通車',
-                               '還元率50%(ETC2.0)_中型車', '還元率50%(ETC2.0)_大型車', '還元率50%(ETC2.0)_特大車'])
+# Compile all the fees based on the fee type (cash, ETC, ETC2.0 and others)
+# 料金は種類ごとに編集
+fin_gen = compile_all('通常(現金)')
+fin_etc = compile_all('ETC')
+fin_etc2 = compile_all('ETC2.0')
+fin_kyu = compile_all('休日(ETC)')
+fin_shya = compile_all('深夜(ETC)')
+fin_etc30p = compile_all('還元率30%(ETC)')
+fin_etc50p = compile_all('還元率50%(ETC)')
+fin_2etc30p = compile_all('還元率30%(ETC2.0)')
+fin_2etc50p = compile_all('還元率50%(ETC2.0)')
 
 
 # Compile all data into one sheet
@@ -281,7 +253,7 @@ fin_2etc50p = pd.concat([pd_kei['入口'], pd_kei['出口'],
 print("全てのデータを一つのシートにまとめる中...")
 fin_data = [fin_gen, fin_etc, fin_etc2, fin_kyu, fin_shya, fin_etc30p, fin_etc50p, fin_2etc30p, fin_2etc50p]
 df_merged = reduce(lambda left,right: pd.merge(left, right, on = ['入口', '出口'], how='outer'), fin_data)
-df_merged.columns = pd.MultiIndex.from_tuples([tuple(c.split('_')) for c in df_merged.columns]))
+df_merged.columns = pd.MultiIndex.from_tuples([tuple(c.split('_')) for c in df_merged.columns])
 
 # Export into Microsoft Excel file.
 # エクセルにエクスポートする。希望しているファイル名を入力できます。
@@ -296,6 +268,7 @@ output_file = input("出力結果ファイル名を入力してください（�
 raw_file = input("出力結果の生データファイル名を入力してください（例:ryokin_fees.xlsx）:")
 omake_file = input("出力結果の種類ごとに分けるデータファイル名を入力してください（例:ryokin_fees.xlsx）:")
 
+df_merged.to_csv('compile_all_toll.csv')
 with pd.ExcelWriter(output_file) as writer:
     df_merged.to_excel(writer, sheet_name = 'まとめ')
 
