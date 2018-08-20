@@ -25,22 +25,24 @@ url = "http://search.w-nexco.co.jp/route.php"
 # CSVファイルを読み込み、空セルを削除。CSVファイル名を入力してください。そのファイルはこのノートと一緒に同じファイルに入れてください。
 #read CSV
 print("""
-CSVファイル名を入力します。このファイルはこのプログラムと一緒に同じファイルに入れていると確認してください。
+    CSVファイル名を入力します。このファイルはこのプログラムと一緒に同じファイルに入れていると確認してください。
 """)
 input_file = input("検索入力のCSVファイルを入力してください（例:ryokin.csv)：")
 df = pd.read_csv(input_file)
 df_edit = df.dropna(subset=['入口','出口'])
 
 print("""
-検索日時を入力してください。
-検索日付..
+    検索日時を入力してください。
+    検索日付...
 """)
 in_yr, in_mth, in_day = input("日付（例：2018/9/3）：").split("/")
-in_week = input("曜日（日-0,月-1,火-2,水-3,木-4,金-5,土-6）：")
+in_week = input("曜日（日-0, 月-1, 火-2, 水-3, 木-4, 金-5, 土-6）：")
 date_val = ("day_{}_{}_{}_{}_0".format(in_yr, in_mth, in_day,in_week))
-print("検索時間..")
+print("""
+    検索時間...
+    """)
 input_hr = input("時：")
-input_min = input("分：")
+input_min = input("分（10分毎で00の場合は0だけ入力してください）：")
 # Run the whole program and iterate through each row. A time.sleep is put to add time for response. Prevent from being recognized as bot
 # プログラムを実行。全車種を検索する。
 
@@ -128,8 +130,12 @@ class AllToll(FeeList):
 
                 def extra_case(box_name):
                     new_box = []
-                    new_box.append(box_name[0:2])
-                    new_box.append(box_name[-2:])
+                    if cartype_val == "1" or cartype_val == "2":
+                        new_box.append(box_name[0:2])
+                        new_box.append(box_name[-2:])
+                    else:
+                        new_box.append(box_name[0:1])
+                        new_box.append(box_name[-2:])
                     return new_box
 
                 def normal_case():
@@ -147,10 +153,10 @@ class AllToll(FeeList):
                         box1.extend([0,0])
                     if len(span_box2) == 1:
                         box2.extend([0,0])
-
-                if len(span_box1) > 4:
+                    
+                if len(span_box1) >= 4:
                     box1 = list(itertools.chain.from_iterable(extra_case(box1)))
-                if len(span_box2) > 4:
+                if len(span_box2) >= 4:
                     box2 = list(itertools.chain.from_iterable(extra_case(box2)))
                 if cartype_val == "1" or cartype_val == "2":
                     run_case = normal_case()
@@ -237,23 +243,14 @@ all_toku = edit_to_int(pd_toku)
 # Compile all the fees based on the fee type (cash, ETC, ETC2.0 and others)
 # 料金は種類ごとに編集
 fin_gen = compile_toll('通常(現金)')
-
 fin_etc = compile_toll('ETC')
-
 fin_etc2 = compile_toll('ETC2.0')
-
 fin_kyu = compile_toll('休日(ETC)')
-
 fin_shya = compile_toll('深夜(ETC)')
-
 fin_etc30p = compile_toll('還元率30%(ETC)')
-
 fin_etc50p = compile_toll('還元率50%(ETC)')
-
 fin_2etc30p = compile_toll('還元率30%(ETC2.0)')
-
 fin_2etc50p = compile_toll('還元率50%(ETC2.0)')
-
 
 # Compile all data into one sheet
 # 全てのデータを一つのシートにまとめる。フォーマット：
