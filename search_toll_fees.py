@@ -195,14 +195,14 @@ print("""
 #車種ごとにPython機能で実行
 kei = AllToll("1").get_toll("1")
 kei_fin = AllToll("1").fin_toll("1")
-#normal = AllToll("2").get_toll("2")
-#norm_fin = AllToll("2").fin_toll("2")
+normal = AllToll("2").get_toll("2")
+norm_fin = AllToll("2").fin_toll("2")
 chugata = AllToll("3").get_toll("3")
 chu_fin = AllToll("3").fin_toll("3")
-#ogata = AllToll("4").get_toll("4")
-#ogata_fin = AllToll("4").fin_toll("4")
-#toku = AllToll("5").get_toll("5")
-#toku_fin = AllToll("5").fin_toll("5")
+ogata = AllToll("4").get_toll("4")
+ogata_fin = AllToll("4").fin_toll("4")
+toku = AllToll("5").get_toll("5")
+toku_fin = AllToll("5").fin_toll("5")
 
 
 # Change list into Pandas DataFrame. Make another dataframe to exclude all unrelated symbols (円,分, etc.)
