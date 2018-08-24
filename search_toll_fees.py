@@ -70,8 +70,7 @@ class AllToll(FeeList):
         for index, row in df_edit.iterrows():
             #open the browser and navigate to the page
             #ブラウザ開いてURLに接続
-            #driver = webdriver.Chrome(chrome_options=options)
-            driver = webdriver.Chrome()
+            driver = webdriver.Chrome(chrome_options=options)
             driver.get(url)
             
             in_keys = row['入口']
