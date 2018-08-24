@@ -4,6 +4,7 @@
 #佐賀大和,豊前
 #岩槻,加須
 #所沢,岩槻
+#岩槻,相模原
 
 # Import library
 # ライブラリーをインポートする
@@ -15,6 +16,9 @@ from selenium.webdriver.support.ui import Select
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.support.wait import WebDriverWait
+from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.support import expected_conditions as EC
 
 # This is the URL used to search for the toll fees.
 # このURLで高速料金を探す
@@ -66,8 +70,12 @@ class AllToll(FeeList):
         for index, row in df_edit.iterrows():
             #open the browser and navigate to the page
             #ブラウザ開いてURLに接続
-            driver = webdriver.Chrome(chrome_options=options)
+            #driver = webdriver.Chrome(chrome_options=options)
+            driver = webdriver.Chrome()
             driver.get(url)
+            
+            in_keys = row['入口']
+            out_keys = row['出口']
 
             #fill in the form
             #検索フォーム入力
@@ -76,9 +84,13 @@ class AllToll(FeeList):
             select_hour = Select(driver.find_element_by_id("sl_hour_id")).select_by_value(input_hr) #時間設定　#set time
             select_min = Select(driver.find_element_by_id("sl_min_id")).select_by_value(input_min)
             in_field = driver.find_element_by_name("fnm") #出発IC
-            in_field.send_keys(row['入口'])
+            in_field.send_keys(in_keys)
+            time.sleep(1)
+            ActionChains(driver).move_to_element(in_field).click(driver.find_element_by_xpath('//*[@class="sg_list"]/div[1]')).perform()
             out_field = driver.find_element_by_name("tnm") #到着IC
-            out_field.send_keys(row['出口'])
+            out_field.send_keys(out_keys)
+            time.sleep(1)
+            ActionChains(driver).move_to_element(out_field).click(driver.find_element_by_xpath('//*[@class="sg_list"]/div[1]')).perform()
             select_car_type = Select(driver.find_element_by_name("cartyp")).select_by_value(cartype_val) #車種区分
             #通らない道路　（二つしかセットできない）
             #set detour (only 2 can be set)
@@ -87,12 +99,10 @@ class AllToll(FeeList):
             select_detour2 = Select(driver.find_element_by_id("detour2_id")).select_by_value("G6000")
             #検索する
             driver.find_element_by_css_selector(".submit-btn").send_keys("\n")
-            time.sleep(2)
-            driver.find_element_by_css_selector(".submit-btn").send_keys("\n")
 
             #wait for page to load and click ETC料金順
             #ページを待つとETC料金順をクリック
-            time.sleep(2)
+            WebDriverWait(driver, 5).until(EC.element_to_be_clickable((By.ID, "pritab9")))
             driver.find_element_by_id("pritab9").click()
             #wait for page to load and get the toll fee
             #ページを待つとデータを取る
@@ -156,11 +166,11 @@ class AllToll(FeeList):
                     
                 if len(span_box1) >= 4:
                     box1 = list(itertools.chain.from_iterable(extra_case(box1)))
-                elif len(span_box1) < 3:
+                elif len(span_box1) < 4:
                     box1 = list(itertools.chain.from_iterable(less_case(box1)))
                 if len(span_box2) >= 4:
                     box2 = list(itertools.chain.from_iterable(extra_case(box2)))
-                elif len(span_box2) < 3:
+                elif len(span_box2) < 4:
                     box2 = list(itertools.chain.from_iterable(less_case(box2)))
                 
                 if cartype_val == "1" or cartype_val == "2":
@@ -260,7 +270,7 @@ fin_2etc50p = compile_toll('還元率50%(ETC2.0)')
 
 # Compile all data into one sheet
 # 全てのデータを一つのシートにまとめる。フォーマット：
-# （通常（現金）、ETC、ETC2.0、深夜、休日、平日朝夕 還元率30%(ETC)、平日朝夕 還元率50%(ETC)、平日朝夕 還元率30%(ETC2.0)、平日朝夕 還元率50%(ETC2.0）
+#（通常（現金）、ETC、ETC2.0、深夜、休日、平日朝夕 還元率30%(ETC)、平日朝夕 還元率50%(ETC)、平日朝夕 還元率30%(ETC2.0)、平日朝夕 還元率50%(ETC2.0）
 print("全てのデータを一つのシートにまとめる...")
 fin_data = [fin_gen, fin_etc, fin_etc2, fin_kyu, fin_shya, fin_etc30p, fin_etc50p, fin_2etc30p, fin_2etc50p]
 df_merged = reduce(lambda left,right: pd.merge(left, right, on = ['入口', '出口'], how='outer'), fin_data)
