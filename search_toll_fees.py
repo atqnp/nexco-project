@@ -1,6 +1,5 @@
 #入口,出口
 #妙高高原,茂原長南
-#本庄児玉,茂原北
 #佐賀大和,豊前
 #岩槻,加須
 #所沢,岩槻
@@ -72,8 +71,7 @@ class AllToll(FeeList):
             try:
                 #open the browser and navigate to the page
                 #ブラウザ開いてURLに接続
-                #driver = webdriver.Chrome(chrome_options=options)
-                driver = webdriver.Chrome()
+                driver = webdriver.Chrome(chrome_options=options)
                 driver.get(url)
             
                 in_keys = row['入口']
@@ -112,7 +110,7 @@ class AllToll(FeeList):
                 #ページを待つとデータを取る
                 time.sleep(2)
                 #出発IC名と到着IC名
-                def ic_name():
+                 def ic_name():
                     start = driver.find_element_by_css_selector("span.start").get_attribute("innerText")
                     goal = driver.find_element_by_css_selector("span.goal").get_attribute("innerText")
                     return start, goal
@@ -137,50 +135,60 @@ class AllToll(FeeList):
                         test2 = span2.get_attribute("innerText")
                         box2.append(test2)
 
-                    def extra_case(box_name):
+                    def small_case(box_name):
                         new_box = []
-                        if cartype_val == "1" or cartype_val == "2":
-                            new_box.append(box_name[0:2])
+                        if len(box_name) >= 4:
+                            new_box.append(box_name[:2])
                             new_box.append(box_name[-2:])
                         else:
                             new_box.append(box_name[0:1])
-                            new_box.append(box_name[-2:])
+                            new_box.insert(0,"0")
+                            new_box.extend(["0","0"])
                         return new_box
                 
-                    def less_case(box_name):
+                    def big_case(box_name):
                         new_box = []
-                        new_box.append(box_name[0:1])
+                        if len(box_name) > 3:
+                            new_box.append(box_name[:1])
+                            new_box.append(box_name[-2:])
+                            new_box.insert(0,"0")
+                        elif len(box_name) == 3:
+                            new_box.append(box_name[:1])
+                            temp_box = []
+                            if box_name == box1:
+                                try:
+                                    temp_box_toll = driver.find_element_by_xpath('//*[@class="etc-info pc-stay pos-etc_box"]/div[2]/div/div/dl[@class="week clearfix"]')
+                                    temp_span = temp_box_toll.find_elements_by_tag_name('span')
+                                    for box_span in temp_span:
+                                        test_box = box_span.get_attribute("innerText")
+                                        temp_box.append(test_box)
+                                except NoSuchElementException as exception:
+                                    temp_box.append("0")
+                            else:
+                                try:
+                                    temp_box_toll = driver.find_element_by_xpath('//*[@class="etc-info pc-stay pos-etc2_box"]/div[2]/div/div/dl[@class="week clearfix"]')
+                                    temp_span = temp_box_toll.find_elements_by_tag_name('span')
+                                    for box_span in temp_span:
+                                        test_box = box_span.get_attribute("innerText")
+                                        temp_box.append(test_box)
+                                except NoSuchElementException as exception:
+                                    temp_box.append("0")
+                            if len(temp_box) == 1:
+                                temp_box.insert(0,"0")
+                            new_box.insert(0,"0")
+                            new_box.append(temp_box)
+                        elif len(box_name) < 3:
+                            new_box.append(box_name[0:1])
+                            new_box.insert(0,"0")
+                            new_box.extend(["0","0"])
                         return new_box
-
-                    def normal_case():
-                        if len(box1) == 1:
-                            box1.insert(0,0)
-                            box1.extend([0,0])
-                        if len(box2) == 1:
-                            box2.insert(0,0)
-                            box2.extend([0,0])
-
-                    def big_case():
-                        if len(box1) == 1:
-                            box1.extend([0,0])
-                        if len(box2) == 1:
-                            box2.extend([0,0])
-                        box1.insert(0,0)
-                        box2.insert(0,0)
-                    
-                    if len(span_box1) >= 4:
-                        box1 = list(itertools.chain.from_iterable(extra_case(box1)))
-                    elif len(span_box1) < 4:
-                        box1 = list(itertools.chain.from_iterable(less_case(box1)))
-                    if len(span_box2) >= 4:
-                        box2 = list(itertools.chain.from_iterable(extra_case(box2)))
-                    elif len(span_box2) < 4:
-                        box2 = list(itertools.chain.from_iterable(less_case(box2)))
                 
                     if cartype_val == "1" or cartype_val == "2":
-                        run_case = normal_case()
+                        box1 = list(itertools.chain.from_iterable(small_case(box1)))
+                        box2 = list(itertools.chain.from_iterable(small_case(box2)))
                     else:
-                        run_case = big_case()
+                        box1 = list(itertools.chain.from_iterable(big_case(box1)))
+                        box2 = list(itertools.chain.from_iterable(big_case(box2)))
                     return  box1, box2
 
                 name_of_ic = ic_name()
