@@ -19,6 +19,7 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import NoSuchElementException
 
 # This is the URL used to search for the toll fees.
 # このURLで高速料金を探す
@@ -68,136 +69,141 @@ class AllToll(FeeList):
 
     def get_toll(self, cartype_val):
         for index, row in df_edit.iterrows():
-            #open the browser and navigate to the page
-            #ブラウザ開いてURLに接続
-            driver = webdriver.Chrome(chrome_options=options)
-            driver.get(url)
+            try:
+                #open the browser and navigate to the page
+                #ブラウザ開いてURLに接続
+                #driver = webdriver.Chrome(chrome_options=options)
+                driver = webdriver.Chrome()
+                driver.get(url)
             
-            in_keys = row['入口']
-            out_keys = row['出口']
+                in_keys = row['入口']
+                out_keys = row['出口']
 
-            #fill in the form
-            #検索フォーム入力
-            driver.find_element_by_id("calImgDiv").click()
-            driver.find_element_by_id(date_val).click() #日付設定　#set date (2018/8/6)
-            select_hour = Select(driver.find_element_by_id("sl_hour_id")).select_by_value(input_hr) #時間設定　#set time
-            select_min = Select(driver.find_element_by_id("sl_min_id")).select_by_value(input_min)
-            in_field = driver.find_element_by_name("fnm") #出発IC
-            in_field.send_keys(in_keys)
-            time.sleep(1)
-            in_path = ('//*[@class="sg_list_element_ic" and (text() = "{}")]'.format(in_keys))
-            ActionChains(driver).move_to_element(in_field).click(driver.find_element_by_xpath(in_path)).perform()
-            out_field = driver.find_element_by_name("tnm") #到着IC
-            out_field.send_keys(out_keys)
-            time.sleep(1)
-            out_path = ('//*[@class="sg_list_element_ic" and (text() ="{}")]'.format(out_keys))
-            ActionChains(driver).move_to_element(out_field).click(driver.find_element_by_xpath(out_path)).perform()
-            select_car_type = Select(driver.find_element_by_name("cartyp")).select_by_value(cartype_val) #車種区分
-            #通らない道路　（二つしかセットできない）
-            #set detour (only 2 can be set)
-            #"G1110"- C3 外環道, "G6000"-首都高速
-            select_detour1 = Select(driver.find_element_by_id("detour1_id")).select_by_value("G1110")
-            select_detour2 = Select(driver.find_element_by_id("detour2_id")).select_by_value("G6000")
-            #検索する
-            driver.find_element_by_css_selector(".submit-btn").send_keys("\n")
+                #fill in the form
+                #検索フォーム入力
+                driver.find_element_by_id("calImgDiv").click()
+                driver.find_element_by_id(date_val).click() #日付設定　#set date (2018/8/6)
+                select_hour = Select(driver.find_element_by_id("sl_hour_id")).select_by_value(input_hr) #時間設定　#set time
+                select_min = Select(driver.find_element_by_id("sl_min_id")).select_by_value(input_min)
+                in_field = driver.find_element_by_name("fnm") #出発IC
+                in_field.send_keys(in_keys)
+                time.sleep(1)
+                in_path = ('//*[@class="sg_list_element_ic" and (text() = "{}")]'.format(in_keys))
+                ActionChains(driver).move_to_element(in_field).click(driver.find_element_by_xpath(in_path)).perform()
+                out_field = driver.find_element_by_name("tnm") #到着IC
+                out_field.send_keys(out_keys)
+                time.sleep(1)
+                out_path = ('//*[@class="sg_list_element_ic" and (text() ="{}")]'.format(out_keys))
+                ActionChains(driver).move_to_element(out_field).click(driver.find_element_by_xpath(out_path)).perform()
+                select_car_type = Select(driver.find_element_by_name("cartyp")).select_by_value(cartype_val) #車種区分
+                #通らない道路　（二つしかセットできない）
+                #set detour (only 2 can be set)
+                #"G1110"- C3 外環道, "G6000"-首都高速
+                select_detour1 = Select(driver.find_element_by_id("detour1_id")).select_by_value("G1110")
+                select_detour2 = Select(driver.find_element_by_id("detour2_id")).select_by_value("G6000")
+                #検索する
+                driver.find_element_by_css_selector(".submit-btn").send_keys("\n")
 
-            #wait for page to load and click ETC料金順
-            #ページを待つとETC料金順をクリック
-            WebDriverWait(driver, 5).until(EC.element_to_be_clickable((By.ID, "pritab9")))
-            driver.find_element_by_id("pritab9").click()
-            #wait for page to load and get the toll fee
-            #ページを待つとデータを取る
-            time.sleep(2)
-            #出発IC名と到着IC名
-            def ic_name():
-                start = driver.find_element_by_css_selector("span.start").get_attribute("innerText")
-                goal = driver.find_element_by_css_selector("span.goal").get_attribute("innerText")
-                return start, goal
-            #通常(現金), ETC, ETC2.0
-            def norm_toll():
-                normal_toll = driver.find_element_by_css_selector("span.toll-normal").get_attribute("innerText")
-                etc_toll = driver.find_element_by_css_selector("span.toll-etc").get_attribute("innerText")
-                etc2_toll = driver.find_element_by_css_selector("span.toll-etc2").get_attribute("innerText")
-                return normal_toll, etc_toll, etc2_toll
-            #他の料金検索
-            def box_toll():
-                box1_toll = driver.find_element_by_xpath('//*[@class="etc-info pc-stay pos-etc_box"]/div[2]/div')
-                span_box1 = box1_toll.find_elements_by_tag_name("span")
-                box1 = []
-                for span1 in span_box1:
-                    test1 = span1.get_attribute("innerText")
-                    box1.append(test1)
-                box2_toll = driver.find_element_by_xpath('//*[@class="etc-info pc-stay pos-etc2_box"]/div[2]/div')
-                span_box2 = box2_toll.find_elements_by_tag_name("span")
-                box2 = []
-                for span2 in span_box2:
-                    test2 = span2.get_attribute("innerText")
-                    box2.append(test2)
+                #wait for page to load and click ETC料金順
+                #ページを待つとETC料金順をクリック
+                WebDriverWait(driver, 5).until(EC.element_to_be_clickable((By.ID, "pritab9")))
+                driver.find_element_by_id("pritab9").click()
+                #wait for page to load and get the toll fee
+                #ページを待つとデータを取る
+                time.sleep(2)
+                #出発IC名と到着IC名
+                def ic_name():
+                    start = driver.find_element_by_css_selector("span.start").get_attribute("innerText")
+                    goal = driver.find_element_by_css_selector("span.goal").get_attribute("innerText")
+                    return start, goal
+                #通常(現金), ETC, ETC2.0
+                def norm_toll():
+                    normal_toll = driver.find_element_by_css_selector("span.toll-normal").get_attribute("innerText")
+                    etc_toll = driver.find_element_by_css_selector("span.toll-etc").get_attribute("innerText")
+                    etc2_toll = driver.find_element_by_css_selector("span.toll-etc2").get_attribute("innerText")
+                    return normal_toll, etc_toll, etc2_toll
+                #他の料金検索
+                def box_toll():
+                    box1_toll = driver.find_element_by_xpath('//*[@class="etc-info pc-stay pos-etc_box"]/div[2]/div')
+                    span_box1 = box1_toll.find_elements_by_tag_name("span")
+                    box1 = []
+                    for span1 in span_box1:
+                        test1 = span1.get_attribute("innerText")
+                        box1.append(test1)
+                    box2_toll = driver.find_element_by_xpath('//*[@class="etc-info pc-stay pos-etc2_box"]/div[2]/div')
+                    span_box2 = box2_toll.find_elements_by_tag_name("span")
+                    box2 = []
+                    for span2 in span_box2:
+                        test2 = span2.get_attribute("innerText")
+                        box2.append(test2)
 
-                def extra_case(box_name):
-                    new_box = []
-                    if cartype_val == "1" or cartype_val == "2":
-                        new_box.append(box_name[0:2])
-                        new_box.append(box_name[-2:])
-                    else:
+                    def extra_case(box_name):
+                        new_box = []
+                        if cartype_val == "1" or cartype_val == "2":
+                            new_box.append(box_name[0:2])
+                            new_box.append(box_name[-2:])
+                        else:
+                            new_box.append(box_name[0:1])
+                            new_box.append(box_name[-2:])
+                        return new_box
+                
+                    def less_case(box_name):
+                        new_box = []
                         new_box.append(box_name[0:1])
-                        new_box.append(box_name[-2:])
-                    return new_box
-                
-                def less_case(box_name):
-                    new_box = []
-                    new_box.append(box_name[0:1])
-                    return new_box
+                        return new_box
 
-                def normal_case():
-                    if len(box1) == 1:
+                    def normal_case():
+                        if len(box1) == 1:
+                            box1.insert(0,0)
+                            box1.extend([0,0])
+                        if len(box2) == 1:
+                            box2.insert(0,0)
+                            box2.extend([0,0])
+
+                    def big_case():
+                        if len(box1) == 1:
+                            box1.extend([0,0])
+                        if len(box2) == 1:
+                            box2.extend([0,0])
                         box1.insert(0,0)
-                        box1.extend([0,0])
-                    if len(box2) == 1:
                         box2.insert(0,0)
-                        box2.extend([0,0])
-
-                def big_case():
-                    if len(box1) == 1:
-                        box1.extend([0,0])
-                    if len(box2) == 1:
-                        box2.extend([0,0])
-                    box1.insert(0,0)
-                    box2.insert(0,0)
                     
-                if len(span_box1) >= 4:
-                    box1 = list(itertools.chain.from_iterable(extra_case(box1)))
-                elif len(span_box1) < 4:
-                    box1 = list(itertools.chain.from_iterable(less_case(box1)))
-                if len(span_box2) >= 4:
-                    box2 = list(itertools.chain.from_iterable(extra_case(box2)))
-                elif len(span_box2) < 4:
-                    box2 = list(itertools.chain.from_iterable(less_case(box2)))
+                    if len(span_box1) >= 4:
+                        box1 = list(itertools.chain.from_iterable(extra_case(box1)))
+                    elif len(span_box1) < 4:
+                        box1 = list(itertools.chain.from_iterable(less_case(box1)))
+                    if len(span_box2) >= 4:
+                        box2 = list(itertools.chain.from_iterable(extra_case(box2)))
+                    elif len(span_box2) < 4:
+                        box2 = list(itertools.chain.from_iterable(less_case(box2)))
                 
-                if cartype_val == "1" or cartype_val == "2":
-                    run_case = normal_case()
-                else:
-                    run_case = big_case()
-                return  box1, box2
+                    if cartype_val == "1" or cartype_val == "2":
+                        run_case = normal_case()
+                    else:
+                        run_case = big_case()
+                    return  box1, box2
 
-            name_of_ic = ic_name()
-            get_norm_toll = norm_toll()
-            get_box_toll = list(itertools.chain.from_iterable(box_toll()))
+                name_of_ic = ic_name()
+                get_norm_toll = norm_toll()
+                get_box_toll = list(itertools.chain.from_iterable(box_toll()))
 
-            #close browser and session
-            #ブラウザを閉じる
-            driver.quit()
+                #close browser and session
+                #ブラウザを閉じる
+                driver.quit()
 
-            #collected toll fess is put inside the list and made into list of list
-            #取ったデータをリストに入れる
-            toll = [name_of_ic, get_norm_toll, get_box_toll]
-            merged_toll = list(itertools.chain.from_iterable(toll))
-            self.buttonlist.append(merged_toll)
-            #wait time before next session
-            #次のセッションをスタートする待つ時間
-            time.sleep(4)
+                #collected toll fess is put inside the list and made into list of list
+                #取ったデータをリストに入れる
+                toll = [name_of_ic, get_norm_toll, get_box_toll]
+                merged_toll = list(itertools.chain.from_iterable(toll))
+                self.buttonlist.append(merged_toll)
+                #wait time before next session
+                #次のセッションをスタートする待つ時間
+                time.sleep(3)
+            except NoSuchElementException as exception:
+                driver.quit()
+                pass
         return self.buttonlist
-
+    
 print("""
     検索中... [車種区分　: (1-軽・自動二輪, 2-普通車, 3-中型車, 4-大型車, 5-特大車)]
 """)
