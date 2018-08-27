@@ -247,6 +247,13 @@ def compile_toll(tolltype):
                      all_chugata[tolltype],all_ogata[tolltype],all_toku[tolltype]], axis=1,
                      keys=['入口', '出口', tolltype + '_軽自動車', tolltype + '_普通車',
                            tolltype + '_中型車', tolltype + '_大型車', tolltype + '_特大車'])
+
+def compare_toll():
+    edit_pd_kei = pd_kei[['入口','出口']]
+    compare_both = edit_pd_kei.merge(df_edit, indicator=True, how='outer')
+    diff_ic = compare_both[compare_both['_merge'] == 'right_only']
+    return diff_ic[['入口','出口']]
+
 #Pandas
 pd_kei = edit_to_pandas(kei)
 pd_normal = edit_to_pandas(normal)
@@ -260,8 +267,6 @@ all_normal = edit_to_int(pd_normal)
 all_chugata = edit_to_int(pd_chugata)
 all_ogata = edit_to_int(pd_ogata)
 all_toku = edit_to_int(pd_toku)
-
-print("done")
 
 # Compile all the fees based on the fee type (cash, ETC, ETC2.0 and others)
 # 料金は種類ごとに編集
@@ -283,22 +288,30 @@ fin_data = [fin_gen, fin_etc, fin_etc2, fin_kyu, fin_shya, fin_etc30p, fin_etc50
 df_merged = reduce(lambda left,right: pd.merge(left, right, on = ['入口', '出口'], how='outer'), fin_data)
 df_merged.columns = pd.MultiIndex.from_tuples([tuple(c.split('_')) for c in df_merged.columns])
 
-# Export into Microsoft Excel file.
+#compare datas to output error list
+#データ比較しエラーリストを作成
+diff_ic = compare_toll()
+
+# Export into file.
 # エクセルにエクスポートする。希望しているファイル名を入力できます。
 print("""
 エクセルにエクスポートする。希望しているファイル名を入力できます。
-4種類のファイルが出力できます。
+5種類のファイルが出力できます。
     1. まとめデータのエクセルファイル
     2. まとめデータのCSVファイル
-    2. 生データのエクセルファイル
-    3. 種類ごとに分けるデータのエクセルファイル
+    3. 入力エラーのCSVファイル
+    4. 生データのエクセルファイル
+    5. 種類ごとに分けるデータのエクセルファイル
 """)
 output_file = input("出力結果ファイル名を入力してください（例:ryokin_fees.xlsx）:")
 output_file_csv = input("出力結果のCSVファイル名を入力してください（例:ryokin_fees.csv）:")
+output_error_csv = input("入力エラーのCSVファイル名を入力してください（例:ryokin_error.csv）:")
 raw_file = input("出力結果の生データファイル名を入力してください（例:ryokin_fees.xlsx）:")
 omake_file = input("出力結果の種類ごとに分けるデータファイル名を入力してください（例:ryokin_fees.xlsx）:")
 
 df_merged.to_csv(output_file_csv)
+diff_ic.to_csv(output_error_csv)
+
 with pd.ExcelWriter(output_file) as writer:
     df_merged.to_excel(writer, sheet_name = 'まとめ')
 
