@@ -85,11 +85,13 @@ class AllToll(FeeList):
             in_field = driver.find_element_by_name("fnm") #出発IC
             in_field.send_keys(in_keys)
             time.sleep(1)
-            ActionChains(driver).move_to_element(in_field).click(driver.find_element_by_xpath('//*[@class="sg_list"]/div[1]')).perform()
+            in_path = ('//*[@class="sg_list_element_ic" and (text() = "{}")]'.format(in_keys))
+            ActionChains(driver).move_to_element(in_field).click(driver.find_element_by_xpath(in_path)).perform()
             out_field = driver.find_element_by_name("tnm") #到着IC
             out_field.send_keys(out_keys)
             time.sleep(1)
-            ActionChains(driver).move_to_element(out_field).click(driver.find_element_by_xpath('//*[@class="sg_list"]/div[1]')).perform()
+            out_path = ('//*[@class="sg_list_element_ic" and (text() ="{}")]'.format(out_keys))
+            ActionChains(driver).move_to_element(out_field).click(driver.find_element_by_xpath(out_path)).perform()
             select_car_type = Select(driver.find_element_by_name("cartyp")).select_by_value(cartype_val) #車種区分
             #通らない道路　（二つしかセットできない）
             #set detour (only 2 can be set)
