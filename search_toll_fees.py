@@ -41,8 +41,11 @@ print("""
 検索日付...
 """)
 in_yr, in_mth, in_day = input("日付（例：2018/9/3）： ").split("/")
-in_week = input("曜日（日-0, 月-1, 火-2, 水-3, 木-4, 金-5, 土-6）： ")
-date_val = ("day_{}_{}_{}_{}_0".format(in_yr, in_mth, in_day,in_week))
+in_week = datetime.datetime(int(in_yr),int(in_mth),int(in_day)).weekday()
+if in_week == 6:
+    date_val = ("day_{}_{}_{}_{}_0".format(in_yr, in_mth, in_day,in_week-6))
+else:
+    date_val = ("day_{}_{}_{}_{}_0".format(in_yr, in_mth, in_day,in_week+1))
 print("""
 検索時間...
     """)
