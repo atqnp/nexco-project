@@ -114,7 +114,7 @@ class AllToll(FeeList):
                 #ページを待つとデータを取る
                 time.sleep(2)
                 #出発IC名と到着IC名
-                 def ic_name():
+                def ic_name():
                     start = driver.find_element_by_css_selector("span.start").get_attribute("innerText")
                     goal = driver.find_element_by_css_selector("span.goal").get_attribute("innerText")
                     return start, goal
