@@ -293,8 +293,11 @@ fin_2etc50p = compile_toll('還元率50%(ETC2.0)')
 #（通常（現金）、ETC、ETC2.0、深夜、休日、平日朝夕 還元率30%(ETC)、平日朝夕 還元率50%(ETC)、平日朝夕 還元率30%(ETC2.0)、平日朝夕 還元率50%(ETC2.0）
 print("全てのデータを一つのシートにまとめる...")
 fin_data = [fin_gen, fin_etc, fin_etc2, fin_kyu, fin_shya, fin_etc30p, fin_etc50p, fin_2etc30p, fin_2etc50p]
+fin_data_comp = [fin_gen, fin_etc, fin_etc2, fin_kyu, fin_shya]
 df_merged = reduce(lambda left,right: pd.merge(left, right, on = ['入口', '出口'], how='outer'), fin_data)
 df_merged.columns = pd.MultiIndex.from_tuples([tuple(c.split('_')) for c in df_merged.columns])
+df_merg_comp = reduce(lambda left,right: pd.merge(left, right, on = ['入口', '出口'], how='outer'), fin_data_comp)
+df_merg_comp.columns = pd.MultiIndex.from_tuples([tuple(c.split('_')) for c in df_merg_comp.columns])
 
 #compare datas to output error list
 #データ比較しエラーリストを作成
@@ -318,6 +321,7 @@ raw_file = input("出力結果の生データファイル名を入力してく�
 omake_file = input("出力結果の種類ごとに分けるデータファイル名を入力してください（例:ryokin_fees.xlsx）:")
 
 df_merged.to_csv(output_file_csv)
+df_merg_comp.to_csv("コンパクト" + output_file_csv)
 diff_ic.to_csv(output_error_csv)
 
 with pd.ExcelWriter(output_file) as writer:
