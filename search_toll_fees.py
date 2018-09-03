@@ -269,12 +269,13 @@ diff_ic = compare_toll()
 # エクセルにエクスポートする。希望しているファイル名を入力できます。
 print("""
 エクセルにエクスポートする。希望しているファイル名を入力できます。
-5種類のファイルが出力できます。
+6種類のファイルが出力できます。
     1. まとめデータのエクセルファイル
     2. まとめデータのCSVファイル
-    3. 入力エラーのCSVファイル
-    4. 生データのエクセルファイル
-    5. 種類ごとに分けるデータのエクセルファイル
+    3. コンパクトまとめデータのCSVファイル（還元率以外）
+    4. 入力エラーのCSVファイル
+    5. 生データのエクセルファイル
+    6. 種類ごとに分けるデータのエクセルファイル
 """)
 output_file = input("出力結果ファイル名を入力してください（例:ryokin_fees.xlsx）:")
 output_file_csv = input("出力結果のCSVファイル名を入力してください（例:ryokin_fees.csv）:")
@@ -305,6 +306,6 @@ with pd.ExcelWriter(omake_file) as writer:
     fin_etc30p.to_excel(writer, sheet_name = '料金（還元率30%(ETC)）')
     fin_etc50p.to_excel(writer, sheet_name = '料金（還元率50%(ETC)）')
     fin_2etc30p.to_excel(writer, sheet_name = '料金（還元率30%(ETC2.0)）')
-    fin_2etc30p.to_excel(writer, sheet_name = '料金（還元率50%(ETC2.0)）')
+    fin_2etc50p.to_excel(writer, sheet_name = '料金（還元率50%(ETC2.0)）')
 
 print("出力ファイルが出来ましたのでプログラムの同じファイルからダウンロードできます。")
