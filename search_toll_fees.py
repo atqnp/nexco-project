@@ -113,100 +113,60 @@ class AllToll(FeeList):
                 #ページを待つとデータを取る
                 time.sleep(2)
                 #出発IC名と到着IC名
-                def ic_name():
-                    start = driver.find_element_by_css_selector("span.start").get_attribute("innerText")
-                    goal = driver.find_element_by_css_selector("span.goal").get_attribute("innerText")
-                    return start, goal
+                start = driver.find_element_by_css_selector("span.start").get_attribute("innerText")
+                goal = driver.find_element_by_css_selector("span.goal").get_attribute("innerText")
                 #通常(現金), ETC, ETC2.0
-                def norm_toll():
-                    normal_toll = driver.find_element_by_css_selector("span.toll-normal").get_attribute("innerText")
-                    etc_toll = driver.find_element_by_css_selector("span.toll-etc").get_attribute("innerText")
-                    etc2_toll = driver.find_element_by_css_selector("span.toll-etc2").get_attribute("innerText")
-                    return normal_toll, etc_toll, etc2_toll
+                normal_toll = driver.find_element_by_css_selector("span.toll-normal").get_attribute("innerText")
+                etc_toll = driver.find_element_by_css_selector("span.toll-etc").get_attribute("innerText")
+                etc2_toll = driver.find_element_by_css_selector("span.toll-etc2").get_attribute("innerText")
                 #他の料金検索
-                def box_toll():
-                    box1_toll = driver.find_element_by_xpath('//*[@class="etc-info pc-stay pos-etc_box"]/div[2]/div')
-                    span_box1 = box1_toll.find_elements_by_tag_name("span")
-                    box1 = []
-                    for span1 in span_box1:
-                        test1 = span1.get_attribute("innerText")
-                        box1.append(test1)
-                    box2_toll = driver.find_element_by_xpath('//*[@class="etc-info pc-stay pos-etc2_box"]/div[2]/div')
-                    span_box2 = box2_toll.find_elements_by_tag_name("span")
-                    box2 = []
-                    for span2 in span_box2:
-                        test2 = span2.get_attribute("innerText")
-                        box2.append(test2)
-
-                    def small_case(box_name):
-                        new_box = []
-                        if len(box_name) >= 4:
-                            new_box.append(box_name[:2])
-                            new_box.append(box_name[-2:])
-                        else:
-                            new_box.append(box_name[0:1])
-                            new_box.insert(0,"0")
-                            new_box.extend(["0","0"])
-                        return new_box
-                
-                    def big_case(box_name):
-                        new_box = []
-                        if len(box_name) > 3:
-                            new_box.append(box_name[:1])
-                            new_box.append(box_name[-2:])
-                            new_box.insert(0,"0")
-                        elif len(box_name) == 3:
-                            new_box.append(box_name[:1])
-                            temp_box = []
-                            if box_name == box1:
-                                try:
-                                    temp_box_toll = driver.find_element_by_xpath('//*[@class="etc-info pc-stay pos-etc_box"]/div[2]/div/div/dl[@class="week clearfix"]')
-                                    temp_span = temp_box_toll.find_elements_by_tag_name('span')
-                                    for box_span in temp_span:
-                                        test_box = box_span.get_attribute("innerText")
-                                        temp_box.append(test_box)
-                                except NoSuchElementException as exception:
-                                    temp_box.append("0")
-                            else:
-                                try:
-                                    temp_box_toll = driver.find_element_by_xpath('//*[@class="etc-info pc-stay pos-etc2_box"]/div[2]/div/div/dl[@class="week clearfix"]')
-                                    temp_span = temp_box_toll.find_elements_by_tag_name('span')
-                                    for box_span in temp_span:
-                                        test_box = box_span.get_attribute("innerText")
-                                        temp_box.append(test_box)
-                                except NoSuchElementException as exception:
-                                    temp_box.append("0")
-                            if len(temp_box) == 1:
-                                temp_box.insert(0,"0")
-                            new_box.insert(0,"0")
-                            new_box.append(temp_box)
-                        elif len(box_name) < 3:
-                            new_box.append(box_name[0:1])
-                            new_box.insert(0,"0")
-                            new_box.extend(["0","0"])
-                        return new_box
-                
-                    if cartype_val == "1" or cartype_val == "2":
-                        box1 = list(itertools.chain.from_iterable(small_case(box1)))
-                        box2 = list(itertools.chain.from_iterable(small_case(box2)))
+                def box_toll(box_no):
+                    if box_no == 1:
+                        box_path = '//*[@class="etc-info pc-stay pos-etc_box"]/div[2]/div'
                     else:
-                        box1 = list(itertools.chain.from_iterable(big_case(box1)))
-                        box2 = list(itertools.chain.from_iterable(big_case(box2)))
-                    return  box1, box2
+                        box_path = '//*[@class="etc-info pc-stay pos-etc2_box"]/div[2]/div'
+                    box_toll = driver.find_element_by_xpath(box_path)
+                    dt_box = box_toll.find_elements_by_tag_name("dt")
+                    dd_box = box_toll.find_elements_by_tag_name("dd")
+                    box_desc = []
+                    box_val = []
+                    for dt in dt_box:
+                        test_d = dt.get_attribute("innerText")
+                        box_desc.append(test_d)
+                    for dd in dd_box:
+                        test_v = dd.get_attribute("innerText")
+                        box_val.append(test_v)
+                    for i in box_desc:
+                        if "平日" in i:
+                            box_desc.remove(i)
+                    for j in box_val:
+                        if "還元率" in j:
+                            box_val.remove(j)
+                    box_val = list(filter(None, box_val))
+                    full_box = dict(zip(box_desc, box_val))
 
-                name_of_ic = ic_name()
-                get_norm_toll = norm_toll()
-                get_box_toll = list(itertools.chain.from_iterable(box_toll()))
+                    return  full_box
+
+                get_box1_toll = box_toll(1)
+                get_box2_toll = box_toll(2)
 
                 #close browser and session
                 #ブラウザを閉じる
                 driver.quit()
+                
+                dict_kyu = "休日（終日）"
+                dict_shya = "深夜（0-4時）"
+                dict_etc30p = "還元率30%\xa0/\xa05～9回"
+                dict_etc50p = "還元率50%\xa0/\xa010回以上"
 
                 #collected toll fess is put inside the list and made into list of list
                 #取ったデータをリストに入れる
-                toll = [name_of_ic, get_norm_toll, get_box_toll]
-                merged_toll = list(itertools.chain.from_iterable(toll))
-                self.buttonlist.append(merged_toll)
+                toll = {'入口' : start, '出口' : goal, 
+                        '通常(現金)' : normal_toll, 'ETC' : etc_toll, 'ETC2.0' : etc2_toll,
+                        '休日' : get_box1_toll.get(dict_kyu, "0"), '深夜' : get_box1_toll.get(dict_shya, "0"), 
+                        '還元率30%(ETC)' : get_box1_toll.get(dict_etc30p, "0"), '還元率50%(ETC)' : get_box1_toll.get(dict_etc50p, "0"),
+                        '還元率30%(ETC2.0)' :get_box2_toll.get(dict_etc30p, "0") , '還元率50%(ETC2.0)' : get_box2_toll.get(dict_etc50p, "0")}
+                self.buttonlist.append(toll.copy())
                 #wait time before next session
                 #次のセッションをスタートする待つ時間
                 time.sleep(3)
@@ -242,12 +202,11 @@ print("""
 
 #header for dataframe
 #データのヘッダー
-title =  ['入口', '出口', '通常(現金)', 'ETC', 'ETC2.0',
-          '休日(ETC)', '深夜(ETC)', '還元率30%(ETC)', '還元率50%(ETC)',
-          '休日(ETC2.0)', '深夜(ETC2.0)','還元率30%(ETC2.0)', '還元率50%(ETC2.0)']
-
 def edit_to_pandas(cartype):
-    return pd.DataFrame(cartype, columns = title)
+    frame = pd.DataFrame(cartype)
+    frame = frame[['入口', '出口', '通常(現金)', 'ETC', 'ETC2.0','休日', '深夜', 
+                   '還元率30%(ETC)', '還元率50%(ETC)','還元率30%(ETC2.0)', '還元率50%(ETC2.0)']]
+    return frame
 
 def edit_to_int(cartype):
     return cartype[cartype.columns[2:]].replace('[\$,円,分]', '', regex=True).astype(int)
@@ -284,8 +243,8 @@ all_toku = edit_to_int(pd_toku)
 fin_gen = compile_toll('通常(現金)')
 fin_etc = compile_toll('ETC')
 fin_etc2 = compile_toll('ETC2.0')
-fin_kyu = compile_toll('休日(ETC)')
-fin_shya = compile_toll('深夜(ETC)')
+fin_kyu = compile_toll('休日')
+fin_shya = compile_toll('深夜')
 fin_etc30p = compile_toll('還元率30%(ETC)')
 fin_etc50p = compile_toll('還元率50%(ETC)')
 fin_2etc30p = compile_toll('還元率30%(ETC2.0)')
@@ -324,7 +283,7 @@ raw_file = input("出力結果の生データファイル名を入力してく�
 omake_file = input("出力結果の種類ごとに分けるデータファイル名を入力してください（例:ryokin_fees.xlsx）:")
 
 df_merged.to_csv(output_file_csv)
-df_merg_comp.to_csv("コンパクト" + output_file_csv)
+df_merg_comp.to_csv("compact" + output_file_csv)
 diff_ic.to_csv(output_error_csv)
 
 with pd.ExcelWriter(output_file) as writer:
