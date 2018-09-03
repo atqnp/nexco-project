@@ -8,6 +8,7 @@
 # Import library
 # ライブラリーをインポートする
 import pandas as pd
+import datetime
 import time, csv, itertools
 from functools import reduce
 from selenium import webdriver
